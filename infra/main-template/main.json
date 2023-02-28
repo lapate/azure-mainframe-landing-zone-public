@@ -1,0 +1,3722 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.14.6.61914",
+      "templateHash": "1885439849933697206"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the location for all resources."
+      }
+    },
+    "environment": {
+      "type": "string",
+      "defaultValue": "dev",
+      "metadata": {
+        "description": "Specifies the environment of the deployment."
+      },
+      "allowedValues": [
+        "dev",
+        "tst",
+        "prd"
+      ]
+    },
+    "prefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the prefix for all resources created in this deployment."
+      },
+      "maxLength": 10,
+      "minLength": 2
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Specifies the tags that you want to apply to all resources."
+      }
+    },
+    "vnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.1.0.0/16",
+      "metadata": {
+        "description": "Specifies the address space of the vnet of the mainframe landing zone."
+      }
+    },
+    "appServicesSubnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.1.0.0/24",
+      "metadata": {
+        "description": "Specifies the address space of the subnet that is used for general services of the mainframe landing zone."
+      }
+    },
+    "adSubnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.1.1.0/24",
+      "metadata": {
+        "description": "Specifies the address space of the public subnet that is used for the AD farm."
+      }
+    },
+    "hubVnetId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Specifies the resource Id of the vnet in the hub."
+      }
+    },
+    "firewallPrivateIp": {
+      "type": "string",
+      "defaultValue": "10.0.0.4",
+      "metadata": {
+        "description": "Specifies the private IP address of the central firewall."
+      }
+    },
+    "dnsServerAdresses": {
+      "type": "array",
+      "defaultValue": [
+        "10.0.0.4"
+      ],
+      "metadata": {
+        "description": "Specifies the private IP addresses of the dns servers."
+      }
+    },
+    "administratorPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Specifies the administrator password of the sql servers."
+      }
+    },
+    "mainframeLandingZoneSubscriptionIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Specifies the subscription IDs of the other Data Landing Zones."
+      }
+    },
+    "privateDnsZoneIdKeyVault": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Specifies the resource ID of the private DNS zone for Key Vault."
+      }
+    },
+    "privateDnsZoneIdDataFactory": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Specifies the resource ID of the private DNS zone for Data Factory."
+      }
+    },
+    "privateDnsZoneIdDataFactoryPortal": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Specifies the resource ID of the private DNS zone for Data Factory Portal."
+      }
+    },
+    "privateDnsZoneIdBlob": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Specifies the resource ID of the private DNS zone for Blob Storage."
+      }
+    },
+    "privateDnsZoneIdSqlServer": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Specifies the resource ID of the private DNS zone for Sql Server."
+      }
+    },
+    "privateDnsZoneIdSynapseDev": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Specifies the resource ID of the private DNS zone for Synapse Dev."
+      }
+    },
+    "privateDnsZoneIdSynapseSql": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Specifies the resource ID of the private DNS zone for Synapse Sql."
+      }
+    }
+  },
+  "variables": {
+    "name": "[toLower(format('{0}-{1}', parameters('prefix'), parameters('environment')))]",
+    "tagsDefault": {
+      "Owner": "Azure Mainframe Landing Zone",
+      "Project": "Azure Mainframe Landing Zone",
+      "Environment": "[parameters('environment')]",
+      "Toolkit": "bicep",
+      "Name": "[variables('name')]"
+    },
+    "tagsJoined": "[union(variables('tagsDefault'), parameters('tags'))]",
+    "administratorUsername": "SuperMainUser",
+    "sqlAdministratorUsername": "SqlServerMainUser",
+    "sqlServer001Name": "database01",
+    "sqlserverAdminGroupName": "",
+    "sqlserverAdminGroupObjectID": ""
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2021-01-01",
+      "name": "[format('{0}-appServices', variables('name'))]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('tagsJoined')]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2021-01-01",
+      "name": "[format('{0}-logging', variables('name'))]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('tagsJoined')]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2021-01-01",
+      "name": "[format('{0}-dataservices', variables('name'))]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('tagsJoined')]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2021-01-01",
+      "name": "[format('{0}-externalstorage', variables('name'))]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('tagsJoined')]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2021-01-01",
+      "name": "[format('{0}-shared-integration', variables('name'))]",
+      "location": "[parameters('location')]",
+      "tags": "[variables('tagsJoined')]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "networkServices22",
+      "resourceGroup": "[format('{0}-appServices', variables('name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "prefix": {
+            "value": "[variables('name')]"
+          },
+          "tags": {
+            "value": "[variables('tagsJoined')]"
+          },
+          "firewallPrivateIp": {
+            "value": "[parameters('firewallPrivateIp')]"
+          },
+          "dnsServerAdresses": {
+            "value": "[parameters('dnsServerAdresses')]"
+          },
+          "vnetAddressPrefix": {
+            "value": "[parameters('vnetAddressPrefix')]"
+          },
+          "appServicesSubnetAddressPrefix": {
+            "value": "[parameters('appServicesSubnetAddressPrefix')]"
+          },
+          "hubVnetId": {
+            "value": "[parameters('hubVnetId')]"
+          },
+          "adSubnetAddressPrefix": {
+            "value": "[parameters('adSubnetAddressPrefix')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.6.61914",
+              "templateHash": "11782651796563687378"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "firewallPrivateIp": {
+              "type": "string",
+              "defaultValue": "10.0.0.4"
+            },
+            "dnsServerAdresses": {
+              "type": "array",
+              "defaultValue": [
+                "10.0.0.4"
+              ]
+            },
+            "vnetAddressPrefix": {
+              "type": "string",
+              "defaultValue": "10.1.0.0/16"
+            },
+            "appServicesSubnetAddressPrefix": {
+              "type": "string",
+              "defaultValue": "10.1.0.0/24"
+            },
+            "adSubnetAddressPrefix": {
+              "type": "string",
+              "defaultValue": "10.1.10.0/29"
+            },
+            "dataIntegration001SubnetAddressPrefix": {
+              "type": "string",
+              "defaultValue": "10.1.6.0/24"
+            },
+            "dataIntegration002SubnetAddressPrefix": {
+              "type": "string",
+              "defaultValue": "10.1.7.0/24"
+            },
+            "hubVnetId": {
+              "type": "string",
+              "defaultValue": ""
+            }
+          },
+          "variables": {
+            "servicesSubnetName": "ServicesSubnet",
+            "adSubnetName": "ADSubnet",
+            "dataIntegration001SubnetName": "DataIntegration001Subnet",
+            "dataIntegration002SubnetName": "DataIntegration002Subnet",
+            "hubVnetSubscriptionId": "[if(greaterOrEquals(length(split(parameters('hubVnetId'), '/')), 9), split(parameters('hubVnetId'), '/')[2], subscription().subscriptionId)]",
+            "hubVnetResourceGroupName": "[if(greaterOrEquals(length(split(parameters('hubVnetId'), '/')), 9), split(parameters('hubVnetId'), '/')[4], resourceGroup().name)]",
+            "hubVnetName": "[if(greaterOrEquals(length(split(parameters('hubVnetId'), '/')), 9), last(split(parameters('hubVnetId'), '/')), 'incorrectSegmentLength')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/routeTables",
+              "apiVersion": "2020-11-01",
+              "name": "[format('{0}-routetable', parameters('prefix'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "disableBgpRoutePropagation": false,
+                "routes": [
+                  {
+                    "name": "to-firewall-default",
+                    "properties": {
+                      "addressPrefix": "0.0.0.0/0",
+                      "nextHopType": "VirtualAppliance",
+                      "nextHopIpAddress": "[parameters('firewallPrivateIp')]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2020-11-01",
+              "name": "[format('{0}-nsg', parameters('prefix'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "securityRules": []
+              }
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2020-06-01",
+              "name": "[format('{0}-vnet', parameters('prefix'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "[parameters('vnetAddressPrefix')]"
+                  ]
+                },
+                "dhcpOptions": {
+                  "dnsServers": "[parameters('dnsServerAdresses')]"
+                },
+                "enableDdosProtection": false,
+                "subnets": [
+                  {
+                    "name": "[variables('servicesSubnetName')]",
+                    "properties": {
+                      "addressPrefix": "[parameters('appServicesSubnetAddressPrefix')]",
+                      "addressPrefixes": [],
+                      "networkSecurityGroup": {
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
+                      },
+                      "routeTable": {
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+                      },
+                      "delegations": [],
+                      "privateEndpointNetworkPolicies": "Disabled",
+                      "privateLinkServiceNetworkPolicies": "Disabled",
+                      "serviceEndpointPolicies": [],
+                      "serviceEndpoints": []
+                    }
+                  },
+                  {
+                    "name": "[variables('dataIntegration001SubnetName')]",
+                    "properties": {
+                      "addressPrefix": "[parameters('dataIntegration001SubnetAddressPrefix')]",
+                      "addressPrefixes": [],
+                      "networkSecurityGroup": {
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
+                      },
+                      "routeTable": {
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+                      },
+                      "delegations": [],
+                      "privateEndpointNetworkPolicies": "Disabled",
+                      "privateLinkServiceNetworkPolicies": "Disabled",
+                      "serviceEndpointPolicies": [],
+                      "serviceEndpoints": []
+                    }
+                  },
+                  {
+                    "name": "[variables('dataIntegration002SubnetName')]",
+                    "properties": {
+                      "addressPrefix": "[parameters('dataIntegration002SubnetAddressPrefix')]",
+                      "addressPrefixes": [],
+                      "networkSecurityGroup": {
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
+                      },
+                      "routeTable": {
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+                      },
+                      "delegations": [],
+                      "privateEndpointNetworkPolicies": "Disabled",
+                      "privateLinkServiceNetworkPolicies": "Disabled",
+                      "serviceEndpointPolicies": [],
+                      "serviceEndpoints": []
+                    }
+                  },
+                  {
+                    "name": "[variables('adSubnetName')]",
+                    "properties": {
+                      "addressPrefix": "[parameters('adSubnetAddressPrefix')]",
+                      "addressPrefixes": [],
+                      "networkSecurityGroup": {
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
+                      },
+                      "routeTable": {
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+                      },
+                      "delegations": [],
+                      "privateEndpointNetworkPolicies": "Disabled",
+                      "privateLinkServiceNetworkPolicies": "Disabled",
+                      "serviceEndpointPolicies": [],
+                      "serviceEndpoints": []
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]",
+                "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+              ]
+            },
+            {
+              "condition": "[not(empty(parameters('hubVnetId')))]",
+              "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+              "apiVersion": "2020-11-01",
+              "name": "[format('{0}/{1}', format('{0}-vnet', parameters('prefix')), variables('hubVnetName'))]",
+              "properties": {
+                "allowForwardedTraffic": true,
+                "allowGatewayTransit": true,
+                "allowVirtualNetworkAccess": true,
+                "peeringState": "Connected",
+                "remoteVirtualNetwork": {
+                  "id": "[parameters('hubVnetId')]"
+                },
+                "useRemoteGateways": false
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix')))]"
+              ]
+            },
+            {
+              "condition": "[not(empty(parameters('hubVnetId')))]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "[format('hubDataLandingZoneVnetPeering-{0}', parameters('prefix'))]",
+              "subscriptionId": "[variables('hubVnetSubscriptionId')]",
+              "resourceGroup": "[variables('hubVnetResourceGroupName')]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "mainframeLandingZoneVnetId": {
+                    "value": "[resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix')))]"
+                  },
+                  "hubVnetId": {
+                    "value": "[parameters('hubVnetId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "9339036640376652413"
+                    }
+                  },
+                  "parameters": {
+                    "hubVnetId": {
+                      "type": "string"
+                    },
+                    "mainframeLandingZoneVnetId": {
+                      "type": "string"
+                    }
+                  },
+                  "variables": {
+                    "hubVnetName": "[if(greaterOrEquals(length(split(parameters('hubVnetId'), '/')), 9), last(split(parameters('hubVnetId'), '/')), 'incorrectSegmentLength')]",
+                    "mainframeLandingZoneVnetName": "[if(greaterOrEquals(length(split(parameters('mainframeLandingZoneVnetId'), '/')), 9), last(split(parameters('mainframeLandingZoneVnetId'), '/')), 'incorrectSegmentLength')]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('hubVnetName'), variables('mainframeLandingZoneVnetName'))]",
+                      "properties": {
+                        "allowForwardedTraffic": true,
+                        "allowGatewayTransit": true,
+                        "allowVirtualNetworkAccess": true,
+                        "peeringState": "Connected",
+                        "remoteVirtualNetwork": {
+                          "id": "[parameters('mainframeLandingZoneVnetId')]"
+                        },
+                        "useRemoteGateways": false
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "vnetId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix')))]"
+            },
+            "nsgId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
+            },
+            "routeTableId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+            },
+            "appServicesSubnetId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix'))), '2020-06-01').subnets[0].id]"
+            },
+            "adServicesSubnetId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix'))), '2020-06-01').subnets[1].id]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-appServices', variables('name')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "appServices22",
+      "resourceGroup": "[format('{0}-appServices', variables('name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "prefix": {
+            "value": "[variables('name')]"
+          },
+          "tags": {
+            "value": "[variables('tagsJoined')]"
+          },
+          "adminUsername": {
+            "value": "[variables('administratorUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('administratorPassword')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.6.61914",
+              "templateHash": "14335456842594376065"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "adminUsername": {
+              "type": "string",
+              "metadata": {
+                "description": "Admin username"
+              }
+            },
+            "adminPassword": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Admin password"
+              }
+            },
+            "vmNamePrefix": {
+              "type": "string",
+              "defaultValue": "[format('{0}vm', parameters('prefix'))]",
+              "metadata": {
+                "description": "Prefix to use for VM names"
+              }
+            },
+            "vmSize": {
+              "type": "string",
+              "defaultValue": "Standard_D2s_v3",
+              "metadata": {
+                "description": "Size of the virtual machines"
+              }
+            },
+            "loadBalancerName": {
+              "type": "string",
+              "defaultValue": "[format('{0}-ilb', parameters('prefix'))]",
+              "metadata": {
+                "description": "Loab Balancer name"
+              }
+            },
+            "networkInterfaceName": {
+              "type": "string",
+              "defaultValue": "[format('{0}-nic', parameters('prefix'))]",
+              "metadata": {
+                "description": "Network Interface name"
+              }
+            },
+            "availabilitySetName": {
+              "type": "string",
+              "defaultValue": "[format('{0}-AvSet', parameters('prefix'))]",
+              "metadata": {
+                "description": "Availability Set name"
+              }
+            },
+            "storageAccountType": {
+              "type": "string",
+              "defaultValue": "Standard_LRS",
+              "metadata": {
+                "description": "Storage Type for Vhds"
+              }
+            },
+            "subnetId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Id of the subnet"
+              }
+            }
+          },
+          "variables": {
+            "storageAccountName": "[uniqueString(resourceGroup().id)]",
+            "numberOfInstances": 2
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-08-01",
+              "name": "[variables('storageAccountName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "[parameters('storageAccountType')]"
+              },
+              "kind": "StorageV2"
+            },
+            {
+              "type": "Microsoft.Compute/availabilitySets",
+              "apiVersion": "2021-11-01",
+              "name": "[parameters('availabilitySetName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Aligned"
+              },
+              "properties": {
+                "platformUpdateDomainCount": 2,
+                "platformFaultDomainCount": 2
+              }
+            },
+            {
+              "copy": {
+                "name": "networkInterface",
+                "count": "[length(range(0, variables('numberOfInstances')))]"
+              },
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig1",
+                    "properties": {
+                      "privateIPAllocationMethod": "Dynamic",
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "loadBalancerBackendAddressPools": [
+                        {
+                          "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancerName'), 'BackendPool1')]"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancerName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/loadBalancers",
+              "apiVersion": "2021-05-01",
+              "name": "[parameters('loadBalancerName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard"
+              },
+              "properties": {
+                "frontendIPConfigurations": [
+                  {
+                    "properties": {
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "privateIPAddress": "10.1.0.6",
+                      "privateIPAllocationMethod": "Static"
+                    },
+                    "name": "LoadBalancerFrontend"
+                  }
+                ],
+                "backendAddressPools": [
+                  {
+                    "name": "BackendPool1"
+                  }
+                ],
+                "loadBalancingRules": [
+                  {
+                    "properties": {
+                      "frontendIPConfiguration": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', parameters('loadBalancerName'), 'LoadBalancerFrontend')]"
+                      },
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancerName'), 'BackendPool1')]"
+                      },
+                      "probe": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/probes', parameters('loadBalancerName'), 'lbprobe')]"
+                      },
+                      "protocol": "Tcp",
+                      "frontendPort": 80,
+                      "backendPort": 80,
+                      "idleTimeoutInMinutes": 15
+                    },
+                    "name": "lbrule"
+                  }
+                ],
+                "probes": [
+                  {
+                    "properties": {
+                      "protocol": "Tcp",
+                      "port": 80,
+                      "intervalInSeconds": 15,
+                      "numberOfProbes": 2
+                    },
+                    "name": "lbprobe"
+                  }
+                ]
+              }
+            },
+            {
+              "copy": {
+                "name": "vm",
+                "count": "[length(range(0, variables('numberOfInstances')))]"
+              },
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}{1}', parameters('vmNamePrefix'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "availabilitySet": {
+                  "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
+                },
+                "hardwareProfile": {
+                  "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                  "computerName": "[format('{0}{1}', parameters('vmNamePrefix'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+                  "adminUsername": "[parameters('adminUsername')]",
+                  "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                  "imageReference": {
+                    "publisher": "MicrosoftWindowsServer",
+                    "offer": "WindowsServer",
+                    "sku": "2019-Datacenter",
+                    "version": "latest"
+                  },
+                  "osDisk": {
+                    "createOption": "FromImage"
+                  }
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[range(0, variables('numberOfInstances'))[copyIndex()]]))]"
+                    }
+                  ]
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true,
+                    "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2021-08-01').primaryEndpoints.blob]"
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[range(0, variables('numberOfInstances'))[copyIndex()]]))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-appServices', variables('name')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "loggingServices",
+      "resourceGroup": "[format('{0}-logging', variables('name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "prefix": {
+            "value": "[variables('name')]"
+          },
+          "tags": {
+            "value": "[variables('tagsJoined')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+          },
+          "privateDnsZoneIdKeyVault": {
+            "value": "[parameters('privateDnsZoneIdKeyVault')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.6.61914",
+              "templateHash": "3452892674100342871"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "subnetId": {
+              "type": "string"
+            },
+            "privateDnsZoneIdKeyVault": {
+              "type": "string",
+              "defaultValue": ""
+            }
+          },
+          "variables": {
+            "keyVault001Name": "[format('{0}-vault003', parameters('prefix'))]",
+            "logAnalytics001Name": "[format('{0}-la001', parameters('prefix'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "keyVault001",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "subnetId": {
+                    "value": "[parameters('subnetId')]"
+                  },
+                  "keyvaultName": {
+                    "value": "[variables('keyVault001Name')]"
+                  },
+                  "privateDnsZoneIdKeyVault": {
+                    "value": "[parameters('privateDnsZoneIdKeyVault')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "13458187442905411"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "subnetId": {
+                      "type": "string"
+                    },
+                    "keyvaultName": {
+                      "type": "string"
+                    },
+                    "privateDnsZoneIdKeyVault": {
+                      "type": "string",
+                      "defaultValue": ""
+                    }
+                  },
+                  "variables": {
+                    "keyVaultPrivateEndpointName": "[format('{0}-private-endpoint', parameters('keyvaultName'))]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.KeyVault/vaults",
+                      "apiVersion": "2021-04-01-preview",
+                      "name": "[parameters('keyvaultName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "accessPolicies": [],
+                        "createMode": "default",
+                        "enabledForDeployment": false,
+                        "enabledForDiskEncryption": false,
+                        "enabledForTemplateDeployment": false,
+                        "enablePurgeProtection": true,
+                        "enableRbacAuthorization": true,
+                        "enableSoftDelete": true,
+                        "networkAcls": {
+                          "bypass": "AzureServices",
+                          "defaultAction": "Deny",
+                          "ipRules": [],
+                          "virtualNetworkRules": []
+                        },
+                        "sku": {
+                          "family": "A",
+                          "name": "standard"
+                        },
+                        "softDeleteRetentionInDays": 7,
+                        "tenantId": "[subscription().tenantId]"
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('keyVaultPrivateEndpointName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('keyVaultPrivateEndpointName')]",
+                            "properties": {
+                              "groupIds": [
+                                "vault"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdKeyVault')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('keyVaultPrivateEndpointName'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('keyVaultPrivateEndpointName'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdKeyVault')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('keyVaultPrivateEndpointName'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "keyvaultId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+                    },
+                    "keyVaultName": {
+                      "type": "string",
+                      "value": "[parameters('keyvaultName')]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "logAnalytics001",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "logAnanalyticsName": {
+                    "value": "[variables('logAnalytics001Name')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "4572039439911511875"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "logAnanalyticsName": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.OperationalInsights/workspaces",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('logAnanalyticsName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "features": {},
+                        "publicNetworkAccessForIngestion": "Enabled",
+                        "publicNetworkAccessForQuery": "Enabled",
+                        "retentionInDays": 120,
+                        "sku": {
+                          "name": "PerGB2018"
+                        }
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "logAnalyticsWorkspaceId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnanalyticsName'))]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "logAnalytics001SecretDeployment",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "keyVaultId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyVault001'), '2020-10-01').outputs.keyvaultId.value]"
+                  },
+                  "logAnalyticsId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'logAnalytics001'), '2020-10-01').outputs.logAnalyticsWorkspaceId.value]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "12640221672191501345"
+                    }
+                  },
+                  "parameters": {
+                    "keyVaultId": {
+                      "type": "string"
+                    },
+                    "logAnalyticsId": {
+                      "type": "string"
+                    }
+                  },
+                  "variables": {
+                    "keyVaultName": "[if(greaterOrEquals(length(split(parameters('keyVaultId'), '/')), 9), last(split(parameters('keyVaultId'), '/')), 'incorrectSegmentLength')]",
+                    "logAnalyticsSubscriptionId": "[if(greaterOrEquals(length(split(parameters('logAnalyticsId'), '/')), 9), split(parameters('logAnalyticsId'), '/')[2], subscription().subscriptionId)]",
+                    "logAnalyticsResourceGroupName": "[if(greaterOrEquals(length(split(parameters('logAnalyticsId'), '/')), 9), split(parameters('logAnalyticsId'), '/')[4], resourceGroup().name)]",
+                    "logAnalyticsName": "[if(greaterOrEquals(length(split(parameters('logAnalyticsId'), '/')), 9), last(split(parameters('logAnalyticsId'), '/')), 'incorrectSegmentLength')]",
+                    "logAnalyticsWorkspaceIdSecretName": "[format('{0}Id', variables('logAnalyticsName'))]",
+                    "logAnalyticsWorkspaceKeySecretName": "[format('{0}Key', variables('logAnalyticsName'))]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.KeyVault/vaults/secrets",
+                      "apiVersion": "2021-04-01-preview",
+                      "name": "[format('{0}/{1}', variables('keyVaultName'), variables('logAnalyticsWorkspaceIdSecretName'))]",
+                      "properties": {
+                        "attributes": {
+                          "enabled": true
+                        },
+                        "contentType": "text/plain",
+                        "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('logAnalyticsSubscriptionId'), variables('logAnalyticsResourceGroupName')), 'Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName')), '2020-10-01').customerId]"
+                      }
+                    },
+                    {
+                      "type": "Microsoft.KeyVault/vaults/secrets",
+                      "apiVersion": "2021-04-01-preview",
+                      "name": "[format('{0}/{1}', variables('keyVaultName'), variables('logAnalyticsWorkspaceKeySecretName'))]",
+                      "properties": {
+                        "attributes": {
+                          "enabled": true
+                        },
+                        "contentType": "text/plain",
+                        "value": "[listkeys(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('logAnalyticsSubscriptionId'), variables('logAnalyticsResourceGroupName')), 'Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName')), '2020-10-01').primarySharedKey]"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "logAnalyticsWorkspaceIdSecretName": {
+                      "type": "string",
+                      "value": "[variables('logAnalyticsWorkspaceIdSecretName')]"
+                    },
+                    "logAnalyticsWorkspaceKeySecretName": {
+                      "type": "string",
+                      "value": "[variables('logAnalyticsWorkspaceKeySecretName')]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'keyVault001')]",
+                "[resourceId('Microsoft.Resources/deployments', 'logAnalytics001')]"
+              ]
+            }
+          ],
+          "outputs": {
+            "logAnalytics001WorkspaceKeyVaultId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyVault001'), '2020-10-01').outputs.keyvaultId.value]"
+            },
+            "logAnalytics001WorkspaceIdSecretName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'logAnalytics001SecretDeployment'), '2020-10-01').outputs.logAnalyticsWorkspaceIdSecretName.value]"
+            },
+            "logAnalytics001WorkspaceKeySecretName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'logAnalytics001SecretDeployment'), '2020-10-01').outputs.logAnalyticsWorkspaceKeySecretName.value]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-logging', variables('name')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "fileshareervices",
+      "resourceGroup": "[format('{0}-appServices', variables('name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "prefix": {
+            "value": "[variables('name')]"
+          },
+          "tags": {
+            "value": "[variables('tagsJoined')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+          },
+          "privateDnsZoneIdBlob": {
+            "value": "[parameters('privateDnsZoneIdBlob')]"
+          },
+          "fileShareName": {
+            "value": "appfs"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.6.61914",
+              "templateHash": "15547240161991688065"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "subnetId": {
+              "type": "string"
+            },
+            "privateDnsZoneIdBlob": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "fileShareName": {
+              "type": "string",
+              "maxLength": 63,
+              "minLength": 3,
+              "metadata": {
+                "description": "Specifies the name of the File Share. File share names must be between 3 and 63 characters in length and use numbers, lower-case letters and dash (-) only."
+              }
+            },
+            "storageAccountName": {
+              "type": "string",
+              "defaultValue": "[format('storage{0}', uniqueString(resourceGroup().id))]",
+              "metadata": {
+                "description": "Specifies the name of the Azure Storage account."
+              }
+            }
+          },
+          "variables": {
+            "storageNameCleaned": "[replace(parameters('storageAccountName'), '-', '')]",
+            "storagePrivateEndpointNameFileShare": "[format('{0}-fileshare-private-endpoint', variables('storageNameCleaned'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-04-01",
+              "name": "[variables('storageNameCleaned')]",
+              "location": "[parameters('location')]",
+              "kind": "StorageV2",
+              "sku": {
+                "name": "Standard_LRS"
+              },
+              "properties": {
+                "accessTier": "Hot"
+              }
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+              "apiVersion": "2021-04-01",
+              "name": "[format('{0}/default/{1}', variables('storageNameCleaned'), parameters('fileShareName'))]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2020-11-01",
+              "name": "[variables('storagePrivateEndpointNameFileShare')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "manualPrivateLinkServiceConnections": [],
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "[variables('storagePrivateEndpointNameFileShare')]",
+                    "properties": {
+                      "groupIds": [
+                        "blob"
+                      ],
+                      "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]",
+                      "requestMessage": ""
+                    }
+                  }
+                ],
+                "subnet": {
+                  "id": "[parameters('subnetId')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+              ]
+            },
+            {
+              "condition": "[not(empty(parameters('privateDnsZoneIdBlob')))]",
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2020-11-01",
+              "name": "[format('{0}/{1}', variables('storagePrivateEndpointNameFileShare'), 'default')]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "[format('{0}-arecord', variables('storagePrivateEndpointNameFileShare'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[parameters('privateDnsZoneIdBlob')]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateEndpoints', variables('storagePrivateEndpointNameFileShare'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "storageId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-appServices', variables('name')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "dataServices",
+      "resourceGroup": "[format('{0}-dataservices', variables('name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "prefix": {
+            "value": "[variables('name')]"
+          },
+          "tags": {
+            "value": "[variables('tagsJoined')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+          },
+          "privateDnsZoneIdBlob": {
+            "value": "[parameters('privateDnsZoneIdBlob')]"
+          },
+          "mainframeLandingZoneSubscriptionIds": {
+            "value": "[parameters('mainframeLandingZoneSubscriptionIds')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.6.61914",
+              "templateHash": "12872118753084072916"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "subnetId": {
+              "type": "string"
+            },
+            "privateDnsZoneIdBlob": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "mainframeLandingZoneSubscriptionIds": {
+              "type": "array",
+              "defaultValue": []
+            }
+          },
+          "variables": {
+            "storageRawName": "[format('{0}-raw', parameters('prefix'))]",
+            "storageEnrichedCuratedName": "[format('{0}-encur', parameters('prefix'))]",
+            "storageWorkspaceName": "[format('{0}-work', parameters('prefix'))]",
+            "domainFileSytemNames": [
+              "data",
+              "di001",
+              "di002"
+            ],
+            "dataProductFileSystemNames": [
+              "data",
+              "dp001",
+              "dp002"
+            ]
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "storageRaw",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "subnetId": {
+                    "value": "[parameters('subnetId')]"
+                  },
+                  "storageName": {
+                    "value": "[variables('storageRawName')]"
+                  },
+                  "privateDnsZoneIdBlob": {
+                    "value": "[parameters('privateDnsZoneIdBlob')]"
+                  },
+                  "fileSystemNames": {
+                    "value": "[variables('domainFileSytemNames')]"
+                  },
+                  "mainframeLandingZoneSubscriptionIds": {
+                    "value": "[parameters('mainframeLandingZoneSubscriptionIds')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "4291910241069482643"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "subnetId": {
+                      "type": "string"
+                    },
+                    "storageName": {
+                      "type": "string"
+                    },
+                    "privateDnsZoneIdDfs": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "privateDnsZoneIdBlob": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "fileSystemNames": {
+                      "type": "array"
+                    },
+                    "purviewId": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "mainframeLandingZoneSubscriptionIds": {
+                      "type": "array",
+                      "defaultValue": []
+                    }
+                  },
+                  "variables": {
+                    "copy": [
+                      {
+                        "name": "synapseResourceAccessrules",
+                        "count": "[length(union(parameters('mainframeLandingZoneSubscriptionIds'), array(subscription().subscriptionId)))]",
+                        "input": {
+                          "tenantId": "[subscription().tenantId]",
+                          "resourceId": "[format('/subscriptions/{0}/resourceGroups/*/providers/Microsoft.Synapse/workspaces/*', union(parameters('mainframeLandingZoneSubscriptionIds'), array(subscription().subscriptionId))[copyIndex('synapseResourceAccessrules')])]"
+                        }
+                      }
+                    ],
+                    "storageNameCleaned": "[replace(parameters('storageName'), '-', '')]",
+                    "storagePrivateEndpointNameBlob": "[format('{0}-blob-private-endpoint', variables('storageNameCleaned'))]",
+                    "storagePrivateEndpointNameDfs": "[format('{0}-dfs-private-endpoint', variables('storageNameCleaned'))]",
+                    "purviewResourceAccessRules": {
+                      "tenantId": "[subscription().tenantId]",
+                      "resourceId": "[parameters('purviewId')]"
+                    },
+                    "resourceAccessRules": "[if(empty(parameters('purviewId')), variables('synapseResourceAccessrules'), union(variables('synapseResourceAccessrules'), array(variables('purviewResourceAccessRules'))))]",
+                    "storageZrsRegions": [
+                      "southafricanorth",
+                      "australiaeast",
+                      "centralindia",
+                      "eastasia",
+                      "japaneast",
+                      "koreacentral",
+                      "southeastasia",
+                      "canadacentral",
+                      "francecentral",
+                      "germanywestcentral",
+                      "northeurope",
+                      "norwayeast",
+                      "swedencentral",
+                      "uksouth",
+                      "westeurope",
+                      "brazilsouth",
+                      "centralus",
+                      "eastus",
+                      "eastus2",
+                      "southcentralus",
+                      "westus2",
+                      "westus3"
+                    ]
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Storage/storageAccounts",
+                      "apiVersion": "2021-02-01",
+                      "name": "[variables('storageNameCleaned')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "sku": {
+                        "name": "[if(contains(variables('storageZrsRegions'), parameters('location')), 'Standard_ZRS', 'Standard_LRS')]"
+                      },
+                      "kind": "StorageV2",
+                      "properties": {
+                        "accessTier": "Hot",
+                        "allowBlobPublicAccess": false,
+                        "allowSharedKeyAccess": false,
+                        "encryption": {
+                          "keySource": "Microsoft.Storage",
+                          "requireInfrastructureEncryption": false,
+                          "services": {
+                            "blob": {
+                              "enabled": true,
+                              "keyType": "Account"
+                            },
+                            "file": {
+                              "enabled": true,
+                              "keyType": "Account"
+                            },
+                            "queue": {
+                              "enabled": true,
+                              "keyType": "Service"
+                            },
+                            "table": {
+                              "enabled": true,
+                              "keyType": "Service"
+                            }
+                          }
+                        },
+                        "isHnsEnabled": true,
+                        "isNfsV3Enabled": false,
+                        "largeFileSharesState": "Disabled",
+                        "minimumTlsVersion": "TLS1_2",
+                        "networkAcls": {
+                          "bypass": "Metrics",
+                          "defaultAction": "Deny",
+                          "ipRules": [],
+                          "virtualNetworkRules": [],
+                          "resourceAccessRules": "[variables('resourceAccessRules')]"
+                        },
+                        "supportsHttpsTrafficOnly": true
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Storage/storageAccounts/blobServices",
+                      "apiVersion": "2021-02-01",
+                      "name": "[format('{0}/{1}', variables('storageNameCleaned'), 'default')]",
+                      "properties": {
+                        "containerDeleteRetentionPolicy": {
+                          "enabled": true,
+                          "days": 7
+                        },
+                        "cors": {
+                          "corsRules": []
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "storageFileSystems",
+                        "count": "[length(parameters('fileSystemNames'))]"
+                      },
+                      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+                      "apiVersion": "2021-02-01",
+                      "name": "[format('{0}/{1}/{2}', variables('storageNameCleaned'), 'default', parameters('fileSystemNames')[copyIndex()])]",
+                      "properties": {
+                        "publicAccess": "None",
+                        "metadata": {}
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageNameCleaned'), 'default')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('storagePrivateEndpointNameBlob')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('storagePrivateEndpointNameBlob')]",
+                            "properties": {
+                              "groupIds": [
+                                "blob"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdBlob')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('storagePrivateEndpointNameBlob'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('storagePrivateEndpointNameBlob'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdBlob')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('storagePrivateEndpointNameBlob'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('storagePrivateEndpointNameDfs')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('storagePrivateEndpointNameDfs')]",
+                            "properties": {
+                              "groupIds": [
+                                "dfs"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdDfs')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('storagePrivateEndpointNameDfs'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('storagePrivateEndpointNameDfs'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdDfs')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('storagePrivateEndpointNameDfs'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "storageId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                    },
+                    "storageFileSystemIds": {
+                      "type": "array",
+                      "copy": {
+                        "count": "[length(parameters('fileSystemNames'))]",
+                        "input": {
+                          "storageFileSystemId": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', variables('storageNameCleaned'), 'default', parameters('fileSystemNames')[copyIndex()])]"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "storageEnrichedCurated",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "subnetId": {
+                    "value": "[parameters('subnetId')]"
+                  },
+                  "storageName": {
+                    "value": "[variables('storageEnrichedCuratedName')]"
+                  },
+                  "privateDnsZoneIdBlob": {
+                    "value": "[parameters('privateDnsZoneIdBlob')]"
+                  },
+                  "fileSystemNames": {
+                    "value": "[variables('domainFileSytemNames')]"
+                  },
+                  "mainframeLandingZoneSubscriptionIds": {
+                    "value": "[parameters('mainframeLandingZoneSubscriptionIds')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "4291910241069482643"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "subnetId": {
+                      "type": "string"
+                    },
+                    "storageName": {
+                      "type": "string"
+                    },
+                    "privateDnsZoneIdDfs": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "privateDnsZoneIdBlob": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "fileSystemNames": {
+                      "type": "array"
+                    },
+                    "purviewId": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "mainframeLandingZoneSubscriptionIds": {
+                      "type": "array",
+                      "defaultValue": []
+                    }
+                  },
+                  "variables": {
+                    "copy": [
+                      {
+                        "name": "synapseResourceAccessrules",
+                        "count": "[length(union(parameters('mainframeLandingZoneSubscriptionIds'), array(subscription().subscriptionId)))]",
+                        "input": {
+                          "tenantId": "[subscription().tenantId]",
+                          "resourceId": "[format('/subscriptions/{0}/resourceGroups/*/providers/Microsoft.Synapse/workspaces/*', union(parameters('mainframeLandingZoneSubscriptionIds'), array(subscription().subscriptionId))[copyIndex('synapseResourceAccessrules')])]"
+                        }
+                      }
+                    ],
+                    "storageNameCleaned": "[replace(parameters('storageName'), '-', '')]",
+                    "storagePrivateEndpointNameBlob": "[format('{0}-blob-private-endpoint', variables('storageNameCleaned'))]",
+                    "storagePrivateEndpointNameDfs": "[format('{0}-dfs-private-endpoint', variables('storageNameCleaned'))]",
+                    "purviewResourceAccessRules": {
+                      "tenantId": "[subscription().tenantId]",
+                      "resourceId": "[parameters('purviewId')]"
+                    },
+                    "resourceAccessRules": "[if(empty(parameters('purviewId')), variables('synapseResourceAccessrules'), union(variables('synapseResourceAccessrules'), array(variables('purviewResourceAccessRules'))))]",
+                    "storageZrsRegions": [
+                      "southafricanorth",
+                      "australiaeast",
+                      "centralindia",
+                      "eastasia",
+                      "japaneast",
+                      "koreacentral",
+                      "southeastasia",
+                      "canadacentral",
+                      "francecentral",
+                      "germanywestcentral",
+                      "northeurope",
+                      "norwayeast",
+                      "swedencentral",
+                      "uksouth",
+                      "westeurope",
+                      "brazilsouth",
+                      "centralus",
+                      "eastus",
+                      "eastus2",
+                      "southcentralus",
+                      "westus2",
+                      "westus3"
+                    ]
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Storage/storageAccounts",
+                      "apiVersion": "2021-02-01",
+                      "name": "[variables('storageNameCleaned')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "sku": {
+                        "name": "[if(contains(variables('storageZrsRegions'), parameters('location')), 'Standard_ZRS', 'Standard_LRS')]"
+                      },
+                      "kind": "StorageV2",
+                      "properties": {
+                        "accessTier": "Hot",
+                        "allowBlobPublicAccess": false,
+                        "allowSharedKeyAccess": false,
+                        "encryption": {
+                          "keySource": "Microsoft.Storage",
+                          "requireInfrastructureEncryption": false,
+                          "services": {
+                            "blob": {
+                              "enabled": true,
+                              "keyType": "Account"
+                            },
+                            "file": {
+                              "enabled": true,
+                              "keyType": "Account"
+                            },
+                            "queue": {
+                              "enabled": true,
+                              "keyType": "Service"
+                            },
+                            "table": {
+                              "enabled": true,
+                              "keyType": "Service"
+                            }
+                          }
+                        },
+                        "isHnsEnabled": true,
+                        "isNfsV3Enabled": false,
+                        "largeFileSharesState": "Disabled",
+                        "minimumTlsVersion": "TLS1_2",
+                        "networkAcls": {
+                          "bypass": "Metrics",
+                          "defaultAction": "Deny",
+                          "ipRules": [],
+                          "virtualNetworkRules": [],
+                          "resourceAccessRules": "[variables('resourceAccessRules')]"
+                        },
+                        "supportsHttpsTrafficOnly": true
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Storage/storageAccounts/blobServices",
+                      "apiVersion": "2021-02-01",
+                      "name": "[format('{0}/{1}', variables('storageNameCleaned'), 'default')]",
+                      "properties": {
+                        "containerDeleteRetentionPolicy": {
+                          "enabled": true,
+                          "days": 7
+                        },
+                        "cors": {
+                          "corsRules": []
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "storageFileSystems",
+                        "count": "[length(parameters('fileSystemNames'))]"
+                      },
+                      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+                      "apiVersion": "2021-02-01",
+                      "name": "[format('{0}/{1}/{2}', variables('storageNameCleaned'), 'default', parameters('fileSystemNames')[copyIndex()])]",
+                      "properties": {
+                        "publicAccess": "None",
+                        "metadata": {}
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageNameCleaned'), 'default')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('storagePrivateEndpointNameBlob')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('storagePrivateEndpointNameBlob')]",
+                            "properties": {
+                              "groupIds": [
+                                "blob"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdBlob')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('storagePrivateEndpointNameBlob'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('storagePrivateEndpointNameBlob'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdBlob')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('storagePrivateEndpointNameBlob'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('storagePrivateEndpointNameDfs')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('storagePrivateEndpointNameDfs')]",
+                            "properties": {
+                              "groupIds": [
+                                "dfs"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdDfs')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('storagePrivateEndpointNameDfs'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('storagePrivateEndpointNameDfs'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdDfs')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('storagePrivateEndpointNameDfs'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "storageId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                    },
+                    "storageFileSystemIds": {
+                      "type": "array",
+                      "copy": {
+                        "count": "[length(parameters('fileSystemNames'))]",
+                        "input": {
+                          "storageFileSystemId": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', variables('storageNameCleaned'), 'default', parameters('fileSystemNames')[copyIndex()])]"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "storageWorkspace",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "subnetId": {
+                    "value": "[parameters('subnetId')]"
+                  },
+                  "storageName": {
+                    "value": "[variables('storageWorkspaceName')]"
+                  },
+                  "privateDnsZoneIdBlob": {
+                    "value": "[parameters('privateDnsZoneIdBlob')]"
+                  },
+                  "fileSystemNames": {
+                    "value": "[variables('dataProductFileSystemNames')]"
+                  },
+                  "mainframeLandingZoneSubscriptionIds": {
+                    "value": "[parameters('mainframeLandingZoneSubscriptionIds')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "4291910241069482643"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "subnetId": {
+                      "type": "string"
+                    },
+                    "storageName": {
+                      "type": "string"
+                    },
+                    "privateDnsZoneIdDfs": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "privateDnsZoneIdBlob": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "fileSystemNames": {
+                      "type": "array"
+                    },
+                    "purviewId": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "mainframeLandingZoneSubscriptionIds": {
+                      "type": "array",
+                      "defaultValue": []
+                    }
+                  },
+                  "variables": {
+                    "copy": [
+                      {
+                        "name": "synapseResourceAccessrules",
+                        "count": "[length(union(parameters('mainframeLandingZoneSubscriptionIds'), array(subscription().subscriptionId)))]",
+                        "input": {
+                          "tenantId": "[subscription().tenantId]",
+                          "resourceId": "[format('/subscriptions/{0}/resourceGroups/*/providers/Microsoft.Synapse/workspaces/*', union(parameters('mainframeLandingZoneSubscriptionIds'), array(subscription().subscriptionId))[copyIndex('synapseResourceAccessrules')])]"
+                        }
+                      }
+                    ],
+                    "storageNameCleaned": "[replace(parameters('storageName'), '-', '')]",
+                    "storagePrivateEndpointNameBlob": "[format('{0}-blob-private-endpoint', variables('storageNameCleaned'))]",
+                    "storagePrivateEndpointNameDfs": "[format('{0}-dfs-private-endpoint', variables('storageNameCleaned'))]",
+                    "purviewResourceAccessRules": {
+                      "tenantId": "[subscription().tenantId]",
+                      "resourceId": "[parameters('purviewId')]"
+                    },
+                    "resourceAccessRules": "[if(empty(parameters('purviewId')), variables('synapseResourceAccessrules'), union(variables('synapseResourceAccessrules'), array(variables('purviewResourceAccessRules'))))]",
+                    "storageZrsRegions": [
+                      "southafricanorth",
+                      "australiaeast",
+                      "centralindia",
+                      "eastasia",
+                      "japaneast",
+                      "koreacentral",
+                      "southeastasia",
+                      "canadacentral",
+                      "francecentral",
+                      "germanywestcentral",
+                      "northeurope",
+                      "norwayeast",
+                      "swedencentral",
+                      "uksouth",
+                      "westeurope",
+                      "brazilsouth",
+                      "centralus",
+                      "eastus",
+                      "eastus2",
+                      "southcentralus",
+                      "westus2",
+                      "westus3"
+                    ]
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Storage/storageAccounts",
+                      "apiVersion": "2021-02-01",
+                      "name": "[variables('storageNameCleaned')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "sku": {
+                        "name": "[if(contains(variables('storageZrsRegions'), parameters('location')), 'Standard_ZRS', 'Standard_LRS')]"
+                      },
+                      "kind": "StorageV2",
+                      "properties": {
+                        "accessTier": "Hot",
+                        "allowBlobPublicAccess": false,
+                        "allowSharedKeyAccess": false,
+                        "encryption": {
+                          "keySource": "Microsoft.Storage",
+                          "requireInfrastructureEncryption": false,
+                          "services": {
+                            "blob": {
+                              "enabled": true,
+                              "keyType": "Account"
+                            },
+                            "file": {
+                              "enabled": true,
+                              "keyType": "Account"
+                            },
+                            "queue": {
+                              "enabled": true,
+                              "keyType": "Service"
+                            },
+                            "table": {
+                              "enabled": true,
+                              "keyType": "Service"
+                            }
+                          }
+                        },
+                        "isHnsEnabled": true,
+                        "isNfsV3Enabled": false,
+                        "largeFileSharesState": "Disabled",
+                        "minimumTlsVersion": "TLS1_2",
+                        "networkAcls": {
+                          "bypass": "Metrics",
+                          "defaultAction": "Deny",
+                          "ipRules": [],
+                          "virtualNetworkRules": [],
+                          "resourceAccessRules": "[variables('resourceAccessRules')]"
+                        },
+                        "supportsHttpsTrafficOnly": true
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Storage/storageAccounts/blobServices",
+                      "apiVersion": "2021-02-01",
+                      "name": "[format('{0}/{1}', variables('storageNameCleaned'), 'default')]",
+                      "properties": {
+                        "containerDeleteRetentionPolicy": {
+                          "enabled": true,
+                          "days": 7
+                        },
+                        "cors": {
+                          "corsRules": []
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "storageFileSystems",
+                        "count": "[length(parameters('fileSystemNames'))]"
+                      },
+                      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+                      "apiVersion": "2021-02-01",
+                      "name": "[format('{0}/{1}/{2}', variables('storageNameCleaned'), 'default', parameters('fileSystemNames')[copyIndex()])]",
+                      "properties": {
+                        "publicAccess": "None",
+                        "metadata": {}
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageNameCleaned'), 'default')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('storagePrivateEndpointNameBlob')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('storagePrivateEndpointNameBlob')]",
+                            "properties": {
+                              "groupIds": [
+                                "blob"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdBlob')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('storagePrivateEndpointNameBlob'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('storagePrivateEndpointNameBlob'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdBlob')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('storagePrivateEndpointNameBlob'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('storagePrivateEndpointNameDfs')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('storagePrivateEndpointNameDfs')]",
+                            "properties": {
+                              "groupIds": [
+                                "dfs"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdDfs')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('storagePrivateEndpointNameDfs'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('storagePrivateEndpointNameDfs'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdDfs')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('storagePrivateEndpointNameDfs'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "storageId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                    },
+                    "storageFileSystemIds": {
+                      "type": "array",
+                      "copy": {
+                        "count": "[length(parameters('fileSystemNames'))]",
+                        "input": {
+                          "storageFileSystemId": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', variables('storageNameCleaned'), 'default', parameters('fileSystemNames')[copyIndex()])]"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "storageRawId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageRaw'), '2020-10-01').outputs.storageId.value]"
+            },
+            "storageRawFileSystemId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageRaw'), '2020-10-01').outputs.storageFileSystemIds.value[0].storageFileSystemId]"
+            },
+            "storageEnrichedCuratedId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageEnrichedCurated'), '2020-10-01').outputs.storageId.value]"
+            },
+            "storageEnrichedCuratedFileSystemId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageEnrichedCurated'), '2020-10-01').outputs.storageFileSystemIds.value[0].storageFileSystemId]"
+            },
+            "storageWorkspaceId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageWorkspace'), '2020-10-01').outputs.storageId.value]"
+            },
+            "storageWorkspaceFileSystemId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageWorkspace'), '2020-10-01').outputs.storageFileSystemIds.value[0].storageFileSystemId]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-dataservices', variables('name')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "data01",
+      "resourceGroup": "[format('{0}-dataservices', variables('name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+          },
+          "administratorUsername": {
+            "value": "[variables('sqlAdministratorUsername')]"
+          },
+          "administratorPassword": {
+            "value": "[parameters('administratorPassword')]"
+          },
+          "sqlserverAdminGroupName": {
+            "value": "[variables('sqlserverAdminGroupName')]"
+          },
+          "sqlserverAdminGroupObjectID": {
+            "value": "[variables('sqlserverAdminGroupObjectID')]"
+          },
+          "sqlserverName": {
+            "value": "[variables('sqlServer001Name')]"
+          },
+          "privateDnsZoneIdSqlServer": {
+            "value": "[parameters('privateDnsZoneIdSqlServer')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.6.61914",
+              "templateHash": "5767908457172257277"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "sqlserverName": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "subnetId": {
+              "type": "string"
+            },
+            "administratorUsername": {
+              "type": "string",
+              "defaultValue": "SqlServerMainUser"
+            },
+            "administratorPassword": {
+              "type": "securestring"
+            },
+            "sqlserverAdminGroupName": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "sqlserverAdminGroupObjectID": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "privateDnsZoneIdSqlServer": {
+              "type": "string",
+              "defaultValue": ""
+            }
+          },
+          "variables": {
+            "sqlserverDbName": "InitialDataDb",
+            "sqlserverPrivateEndpointName": "[format('{0}-private-endpoint', parameters('sqlserverName'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Sql/servers",
+              "apiVersion": "2020-11-01-preview",
+              "name": "[parameters('sqlserverName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "administratorLogin": "[parameters('administratorUsername')]",
+                "administratorLoginPassword": "[parameters('administratorPassword')]",
+                "administrators": {},
+                "minimalTlsVersion": "1.2",
+                "publicNetworkAccess": "Disabled",
+                "version": "12.0"
+              }
+            },
+            {
+              "type": "Microsoft.Sql/servers/databases",
+              "apiVersion": "2020-11-01-preview",
+              "name": "[format('{0}/{1}', parameters('sqlserverName'), variables('sqlserverDbName'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Basic",
+                "tier": "Basic",
+                "capacity": 5
+              },
+              "properties": {
+                "autoPauseDelay": -1,
+                "catalogCollation": "DATABASE_DEFAULT",
+                "collation": "SQL_Latin1_General_CP1_CI_AS",
+                "createMode": "Default",
+                "readScale": "Disabled",
+                "highAvailabilityReplicaCount": 0,
+                "licenseType": "LicenseIncluded",
+                "maxSizeBytes": 524288000,
+                "minCapacity": 1,
+                "requestedBackupStorageRedundancy": "Geo",
+                "zoneRedundant": false
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2020-11-01",
+              "name": "[variables('sqlserverPrivateEndpointName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "manualPrivateLinkServiceConnections": [],
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "[variables('sqlserverPrivateEndpointName')]",
+                    "properties": {
+                      "groupIds": [
+                        "sqlServer"
+                      ],
+                      "privateLinkServiceId": "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]",
+                      "requestMessage": ""
+                    }
+                  }
+                ],
+                "subnet": {
+                  "id": "[parameters('subnetId')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]"
+              ]
+            },
+            {
+              "condition": "[not(empty(parameters('privateDnsZoneIdSqlServer')))]",
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2020-11-01",
+              "name": "[format('{0}/{1}', variables('sqlserverPrivateEndpointName'), 'default')]",
+              "properties": {
+                "privateDnsZoneConfigs": [
+                  {
+                    "name": "[format('{0}-arecord', variables('sqlserverPrivateEndpointName'))]",
+                    "properties": {
+                      "privateDnsZoneId": "[parameters('privateDnsZoneIdSqlServer')]"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateEndpoints', variables('sqlserverPrivateEndpointName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "sqlServerId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]"
+            },
+            "sqlServerDatabaseName": {
+              "type": "string",
+              "value": "[variables('sqlserverDbName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-dataservices', variables('name')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "externalStorageServices",
+      "resourceGroup": "[format('{0}-externalstorage', variables('name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "prefix": {
+            "value": "[variables('name')]"
+          },
+          "tags": {
+            "value": "[variables('tagsJoined')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+          },
+          "privateDnsZoneIdBlob": {
+            "value": "[parameters('privateDnsZoneIdBlob')]"
+          },
+          "mainframeLandingZoneSubscriptionIds": {
+            "value": "[parameters('mainframeLandingZoneSubscriptionIds')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.6.61914",
+              "templateHash": "11930132618838422733"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "subnetId": {
+              "type": "string"
+            },
+            "privateDnsZoneIdBlob": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "mainframeLandingZoneSubscriptionIds": {
+              "type": "array",
+              "defaultValue": []
+            }
+          },
+          "variables": {
+            "storageExternal001Name": "[format('{0}-ext001', parameters('prefix'))]",
+            "fileSytemNames": [
+              "data"
+            ]
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "storageExternal001",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "subnetId": {
+                    "value": "[parameters('subnetId')]"
+                  },
+                  "storageName": {
+                    "value": "[variables('storageExternal001Name')]"
+                  },
+                  "privateDnsZoneIdBlob": {
+                    "value": "[parameters('privateDnsZoneIdBlob')]"
+                  },
+                  "fileSytemNames": {
+                    "value": "[variables('fileSytemNames')]"
+                  },
+                  "mainframeLandingZoneSubscriptionIds": {
+                    "value": "[parameters('mainframeLandingZoneSubscriptionIds')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "17668966431934719474"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "subnetId": {
+                      "type": "string"
+                    },
+                    "storageName": {
+                      "type": "string"
+                    },
+                    "privateDnsZoneIdBlob": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "fileSytemNames": {
+                      "type": "array",
+                      "defaultValue": [
+                        "data"
+                      ]
+                    },
+                    "mainframeLandingZoneSubscriptionIds": {
+                      "type": "array",
+                      "defaultValue": []
+                    }
+                  },
+                  "variables": {
+                    "copy": [
+                      {
+                        "name": "synapseResourceAccessrules",
+                        "count": "[length(union(parameters('mainframeLandingZoneSubscriptionIds'), array(subscription().subscriptionId)))]",
+                        "input": {
+                          "tenantId": "[subscription().tenantId]",
+                          "resourceId": "[format('/subscriptions/{0}/resourceGroups/*/providers/Microsoft.Synapse/workspaces/*', union(parameters('mainframeLandingZoneSubscriptionIds'), array(subscription().subscriptionId))[copyIndex('synapseResourceAccessrules')])]"
+                        }
+                      }
+                    ],
+                    "storageNameCleaned": "[replace(parameters('storageName'), '-', '')]",
+                    "storageExternalPrivateEndpointNameBlob": "[format('{0}-blob-private-endpoint', variables('storageNameCleaned'))]",
+                    "resourceAccessRules": "[variables('synapseResourceAccessrules')]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Storage/storageAccounts",
+                      "apiVersion": "2021-02-01",
+                      "name": "[variables('storageNameCleaned')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "sku": {
+                        "name": "Standard_ZRS"
+                      },
+                      "kind": "StorageV2",
+                      "properties": {
+                        "accessTier": "Hot",
+                        "allowBlobPublicAccess": false,
+                        "allowSharedKeyAccess": false,
+                        "encryption": {
+                          "keySource": "Microsoft.Storage",
+                          "requireInfrastructureEncryption": false,
+                          "services": {
+                            "blob": {
+                              "enabled": true,
+                              "keyType": "Account"
+                            },
+                            "file": {
+                              "enabled": true,
+                              "keyType": "Account"
+                            },
+                            "queue": {
+                              "enabled": true,
+                              "keyType": "Service"
+                            },
+                            "table": {
+                              "enabled": true,
+                              "keyType": "Service"
+                            }
+                          }
+                        },
+                        "isHnsEnabled": false,
+                        "isNfsV3Enabled": false,
+                        "largeFileSharesState": "Disabled",
+                        "minimumTlsVersion": "TLS1_2",
+                        "networkAcls": {
+                          "bypass": "Metrics",
+                          "defaultAction": "Deny",
+                          "ipRules": [],
+                          "virtualNetworkRules": [],
+                          "resourceAccessRules": "[variables('resourceAccessRules')]"
+                        },
+                        "supportsHttpsTrafficOnly": true
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Storage/storageAccounts/blobServices",
+                      "apiVersion": "2021-02-01",
+                      "name": "[format('{0}/{1}', variables('storageNameCleaned'), 'default')]",
+                      "properties": {
+                        "containerDeleteRetentionPolicy": {
+                          "enabled": true,
+                          "days": 7
+                        },
+                        "cors": {
+                          "corsRules": []
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "storageExternalFileSystems",
+                        "count": "[length(parameters('fileSytemNames'))]"
+                      },
+                      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+                      "apiVersion": "2021-02-01",
+                      "name": "[format('{0}/{1}/{2}', variables('storageNameCleaned'), 'default', parameters('fileSytemNames')[copyIndex()])]",
+                      "properties": {
+                        "publicAccess": "None",
+                        "metadata": {}
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageNameCleaned'), 'default')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('storageExternalPrivateEndpointNameBlob')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('storageExternalPrivateEndpointNameBlob')]",
+                            "properties": {
+                              "groupIds": [
+                                "blob"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageNameCleaned'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdBlob')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('storageExternalPrivateEndpointNameBlob'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('storageExternalPrivateEndpointNameBlob'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdBlob')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('storageExternalPrivateEndpointNameBlob'))]"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-externalstorage', variables('name')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "sharedIntegrationServices",
+      "resourceGroup": "[format('{0}-shared-integration', variables('name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "prefix": {
+            "value": "[variables('name')]"
+          },
+          "tags": {
+            "value": "[variables('tagsJoined')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+          },
+          "vnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.vnetId.value]"
+          },
+          "storageRawId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', 'dataServices'), '2020-10-01').outputs.storageRawId.value]"
+          },
+          "storageAccountRawFileSystemId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', 'dataServices'), '2020-10-01').outputs.storageRawFileSystemId.value]"
+          },
+          "storageEnrichedCuratedId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', 'dataServices'), '2020-10-01').outputs.storageEnrichedCuratedId.value]"
+          },
+          "storageAccountEnrichedCuratedFileSystemId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', 'dataServices'), '2020-10-01').outputs.storageEnrichedCuratedFileSystemId.value]"
+          },
+          "privateDnsZoneIdKeyVault": {
+            "value": "[parameters('privateDnsZoneIdKeyVault')]"
+          },
+          "privateDnsZoneIdDataFactory": {
+            "value": "[parameters('privateDnsZoneIdDataFactory')]"
+          },
+          "privateDnsZoneIdDataFactoryPortal": {
+            "value": "[parameters('privateDnsZoneIdDataFactoryPortal')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.6.61914",
+              "templateHash": "16607706214103851570"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "storageAccountRawFileSystemId": {
+              "type": "string"
+            },
+            "storageAccountEnrichedCuratedFileSystemId": {
+              "type": "string"
+            },
+            "vnetId": {
+              "type": "string"
+            },
+            "subnetId": {
+              "type": "string"
+            },
+            "storageRawId": {
+              "type": "string"
+            },
+            "storageEnrichedCuratedId": {
+              "type": "string"
+            },
+            "privateDnsZoneIdKeyVault": {
+              "type": "string"
+            },
+            "privateDnsZoneIdDataFactory": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "privateDnsZoneIdDataFactoryPortal": {
+              "type": "string",
+              "defaultValue": ""
+            }
+          },
+          "variables": {
+            "keyVault001Name": "[format('{0}-vault001', parameters('prefix'))]",
+            "datafactoryIntegration001Name": "[format('{0}-integration-datafactory001', parameters('prefix'))]",
+            "storageAccountRawSubscriptionId": "[if(greaterOrEquals(length(split(parameters('storageAccountRawFileSystemId'), '/')), 13), split(parameters('storageAccountRawFileSystemId'), '/')[2], subscription().subscriptionId)]",
+            "storageAccountRawResourceGroupName": "[if(greaterOrEquals(length(split(parameters('storageAccountRawFileSystemId'), '/')), 13), split(parameters('storageAccountRawFileSystemId'), '/')[4], resourceGroup().name)]",
+            "storageAccountEnrichedCuratedSubscriptionId": "[if(greaterOrEquals(length(split(parameters('storageAccountEnrichedCuratedFileSystemId'), '/')), 13), split(parameters('storageAccountEnrichedCuratedFileSystemId'), '/')[2], subscription().subscriptionId)]",
+            "storageAccountEnrichedCuratedResourceGroupName": "[if(greaterOrEquals(length(split(parameters('storageAccountEnrichedCuratedFileSystemId'), '/')), 13), split(parameters('storageAccountEnrichedCuratedFileSystemId'), '/')[4], resourceGroup().name)]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "keyVault001",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "subnetId": {
+                    "value": "[parameters('subnetId')]"
+                  },
+                  "keyvaultName": {
+                    "value": "[variables('keyVault001Name')]"
+                  },
+                  "privateDnsZoneIdKeyVault": {
+                    "value": "[parameters('privateDnsZoneIdKeyVault')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "13458187442905411"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "subnetId": {
+                      "type": "string"
+                    },
+                    "keyvaultName": {
+                      "type": "string"
+                    },
+                    "privateDnsZoneIdKeyVault": {
+                      "type": "string",
+                      "defaultValue": ""
+                    }
+                  },
+                  "variables": {
+                    "keyVaultPrivateEndpointName": "[format('{0}-private-endpoint', parameters('keyvaultName'))]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.KeyVault/vaults",
+                      "apiVersion": "2021-04-01-preview",
+                      "name": "[parameters('keyvaultName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "accessPolicies": [],
+                        "createMode": "default",
+                        "enabledForDeployment": false,
+                        "enabledForDiskEncryption": false,
+                        "enabledForTemplateDeployment": false,
+                        "enablePurgeProtection": true,
+                        "enableRbacAuthorization": true,
+                        "enableSoftDelete": true,
+                        "networkAcls": {
+                          "bypass": "AzureServices",
+                          "defaultAction": "Deny",
+                          "ipRules": [],
+                          "virtualNetworkRules": []
+                        },
+                        "sku": {
+                          "family": "A",
+                          "name": "standard"
+                        },
+                        "softDeleteRetentionInDays": 7,
+                        "tenantId": "[subscription().tenantId]"
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('keyVaultPrivateEndpointName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('keyVaultPrivateEndpointName')]",
+                            "properties": {
+                              "groupIds": [
+                                "vault"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdKeyVault')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('keyVaultPrivateEndpointName'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('keyVaultPrivateEndpointName'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdKeyVault')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('keyVaultPrivateEndpointName'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "keyvaultId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultName'))]"
+                    },
+                    "keyVaultName": {
+                      "type": "string",
+                      "value": "[parameters('keyvaultName')]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "datafactoryIntegration001",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "subnetId": {
+                    "value": "[parameters('subnetId')]"
+                  },
+                  "datafactoryName": {
+                    "value": "[variables('datafactoryIntegration001Name')]"
+                  },
+                  "privateDnsZoneIdDataFactory": {
+                    "value": "[parameters('privateDnsZoneIdDataFactory')]"
+                  },
+                  "privateDnsZoneIdDataFactoryPortal": {
+                    "value": "[parameters('privateDnsZoneIdDataFactoryPortal')]"
+                  },
+                  "storageRawId": {
+                    "value": "[parameters('storageRawId')]"
+                  },
+                  "storageEnrichedCuratedId": {
+                    "value": "[parameters('storageEnrichedCuratedId')]"
+                  },
+                  "keyVault001Id": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyVault001'), '2020-10-01').outputs.keyvaultId.value]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "5973857526229373868"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "subnetId": {
+                      "type": "string"
+                    },
+                    "datafactoryName": {
+                      "type": "string"
+                    },
+                    "privateDnsZoneIdDataFactory": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "privateDnsZoneIdDataFactoryPortal": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "storageRawId": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "storageEnrichedCuratedId": {
+                      "type": "string",
+                      "defaultValue": ""
+                    },
+                    "keyVault001Id": {
+                      "type": "string",
+                      "defaultValue": ""
+                    }
+                  },
+                  "variables": {
+                    "storageRawName": "[string(if(greaterOrEquals(length(split(parameters('storageRawId'), '/')), 9), last(split(parameters('storageRawId'), '/')), 'incorrectSegmentLength'))]",
+                    "storageEnrichedCuratedName": "[string(if(greaterOrEquals(length(split(parameters('storageEnrichedCuratedId'), '/')), 9), last(split(parameters('storageEnrichedCuratedId'), '/')), 'incorrectSegmentLength'))]",
+                    "keyVault001Name": "[string(if(greaterOrEquals(length(split(parameters('keyVault001Id'), '/')), 9), last(split(parameters('keyVault001Id'), '/')), 'incorrectSegmentLength'))]",
+                    "datafactoryDefaultManagedVnetIntegrationRuntimeName": "AutoResolveIntegrationRuntime",
+                    "datafactoryPrivateEndpointNameDatafactory": "[format('{0}-datafactory-private-endpoint', parameters('datafactoryName'))]",
+                    "datafactoryPrivateEndpointNamePortal": "[format('{0}-portal-private-endpoint', parameters('datafactoryName'))]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.DataFactory/factories",
+                      "apiVersion": "2018-06-01",
+                      "name": "[parameters('datafactoryName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "properties": {
+                        "globalParameters": {},
+                        "publicNetworkAccess": "Disabled"
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('datafactoryPrivateEndpointNameDatafactory')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('datafactoryPrivateEndpointNameDatafactory')]",
+                            "properties": {
+                              "groupIds": [
+                                "dataFactory"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.DataFactory/factories', parameters('datafactoryName'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DataFactory/factories', parameters('datafactoryName'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdDataFactory')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('datafactoryPrivateEndpointNameDatafactory'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('datafactoryPrivateEndpointNameDatafactory'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdDataFactory')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('datafactoryPrivateEndpointNameDatafactory'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-11-01",
+                      "name": "[variables('datafactoryPrivateEndpointNamePortal')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "manualPrivateLinkServiceConnections": [],
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[variables('datafactoryPrivateEndpointNamePortal')]",
+                            "properties": {
+                              "groupIds": [
+                                "portal"
+                              ],
+                              "privateLinkServiceId": "[resourceId('Microsoft.DataFactory/factories', parameters('datafactoryName'))]",
+                              "requestMessage": ""
+                            }
+                          }
+                        ],
+                        "subnet": {
+                          "id": "[parameters('subnetId')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DataFactory/factories', parameters('datafactoryName'))]"
+                      ]
+                    },
+                    {
+                      "condition": "[not(empty(parameters('privateDnsZoneIdDataFactoryPortal')))]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2020-11-01",
+                      "name": "[format('{0}/{1}', variables('datafactoryPrivateEndpointNamePortal'), 'default')]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "[format('{0}-arecord', variables('datafactoryPrivateEndpointNamePortal'))]",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('privateDnsZoneIdDataFactoryPortal')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', variables('datafactoryPrivateEndpointNamePortal'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
+                      "apiVersion": "2018-06-01",
+                      "name": "[format('{0}/{1}', parameters('datafactoryName'), 'default')]",
+                      "properties": {},
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DataFactory/factories', parameters('datafactoryName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.DataFactory/factories/integrationRuntimes",
+                      "apiVersion": "2018-06-01",
+                      "name": "[format('{0}/{1}', parameters('datafactoryName'), variables('datafactoryDefaultManagedVnetIntegrationRuntimeName'))]",
+                      "properties": {
+                        "type": "Managed",
+                        "managedVirtualNetwork": {
+                          "type": "ManagedVirtualNetworkReference",
+                          "referenceName": "default"
+                        },
+                        "typeProperties": {
+                          "computeProperties": {
+                            "location": "AutoResolve"
+                          }
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DataFactory/factories', parameters('datafactoryName'))]",
+                        "[resourceId('Microsoft.DataFactory/factories/managedVirtualNetworks', parameters('datafactoryName'), 'default')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+                      "apiVersion": "2018-06-01",
+                      "name": "[format('{0}/{1}/{2}', parameters('datafactoryName'), 'default', replace(variables('keyVault001Name'), '-', ''))]",
+                      "properties": {
+                        "fqdns": [],
+                        "groupId": "vault",
+                        "privateLinkResourceId": "[parameters('keyVault001Id')]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DataFactory/factories/managedVirtualNetworks', parameters('datafactoryName'), 'default')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.DataFactory/factories/linkedservices",
+                      "apiVersion": "2018-06-01",
+                      "name": "[format('{0}/{1}', parameters('datafactoryName'), replace(variables('keyVault001Name'), '-', ''))]",
+                      "properties": {
+                        "type": "AzureKeyVault",
+                        "annotations": [],
+                        "connectVia": {
+                          "type": "IntegrationRuntimeReference",
+                          "referenceName": "[variables('datafactoryDefaultManagedVnetIntegrationRuntimeName')]",
+                          "parameters": {}
+                        },
+                        "description": "Key Vault for storing secrets",
+                        "parameters": {},
+                        "typeProperties": {
+                          "baseUrl": "[format('https://{0}{1}/', variables('keyVault001Name'), environment().suffixes.keyvaultDns)]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DataFactory/factories', parameters('datafactoryName'))]",
+                        "[resourceId('Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints', parameters('datafactoryName'), 'default', replace(variables('keyVault001Name'), '-', ''))]",
+                        "[resourceId('Microsoft.DataFactory/factories/integrationRuntimes', parameters('datafactoryName'), variables('datafactoryDefaultManagedVnetIntegrationRuntimeName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+                      "apiVersion": "2018-06-01",
+                      "name": "[format('{0}/{1}/{2}', parameters('datafactoryName'), 'default', variables('storageRawName'))]",
+                      "properties": {
+                        "fqdns": [],
+                        "groupId": "dfs",
+                        "privateLinkResourceId": "[parameters('storageRawId')]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DataFactory/factories/managedVirtualNetworks', parameters('datafactoryName'), 'default')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.DataFactory/factories/linkedservices",
+                      "apiVersion": "2018-06-01",
+                      "name": "[format('{0}/{1}', parameters('datafactoryName'), variables('storageRawName'))]",
+                      "properties": {
+                        "type": "AzureBlobFS",
+                        "annotations": [],
+                        "connectVia": {
+                          "type": "IntegrationRuntimeReference",
+                          "referenceName": "[variables('datafactoryDefaultManagedVnetIntegrationRuntimeName')]",
+                          "parameters": {}
+                        },
+                        "description": "Storage Account for raw data",
+                        "parameters": {},
+                        "typeProperties": {
+                          "url": "[format('https://{0}.dfs.{1}', variables('storageRawName'), environment().suffixes.storage)]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DataFactory/factories', parameters('datafactoryName'))]",
+                        "[resourceId('Microsoft.DataFactory/factories/integrationRuntimes', parameters('datafactoryName'), variables('datafactoryDefaultManagedVnetIntegrationRuntimeName'))]",
+                        "[resourceId('Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints', parameters('datafactoryName'), 'default', variables('storageRawName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+                      "apiVersion": "2018-06-01",
+                      "name": "[format('{0}/{1}/{2}', parameters('datafactoryName'), 'default', variables('storageEnrichedCuratedName'))]",
+                      "properties": {
+                        "fqdns": [],
+                        "groupId": "dfs",
+                        "privateLinkResourceId": "[parameters('storageEnrichedCuratedId')]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DataFactory/factories/managedVirtualNetworks', parameters('datafactoryName'), 'default')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.DataFactory/factories/linkedservices",
+                      "apiVersion": "2018-06-01",
+                      "name": "[format('{0}/{1}', parameters('datafactoryName'), variables('storageEnrichedCuratedName'))]",
+                      "properties": {
+                        "type": "AzureBlobFS",
+                        "annotations": [],
+                        "connectVia": {
+                          "type": "IntegrationRuntimeReference",
+                          "referenceName": "[variables('datafactoryDefaultManagedVnetIntegrationRuntimeName')]",
+                          "parameters": {}
+                        },
+                        "description": "Storage Account for raw data",
+                        "parameters": {},
+                        "typeProperties": {
+                          "url": "[format('https://{0}.dfs.{1}', variables('storageEnrichedCuratedName'), environment().suffixes.storage)]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DataFactory/factories', parameters('datafactoryName'))]",
+                        "[resourceId('Microsoft.DataFactory/factories/integrationRuntimes', parameters('datafactoryName'), variables('datafactoryDefaultManagedVnetIntegrationRuntimeName'))]",
+                        "[resourceId('Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints', parameters('datafactoryName'), 'default', variables('storageEnrichedCuratedName'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "datafactoryId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.DataFactory/factories', parameters('datafactoryName'))]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'keyVault001')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "datafactory001StorageRawRoleAssignment",
+              "subscriptionId": "[variables('storageAccountRawSubscriptionId')]",
+              "resourceGroup": "[variables('storageAccountRawResourceGroupName')]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "datafactoryId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'datafactoryIntegration001'), '2020-10-01').outputs.datafactoryId.value]"
+                  },
+                  "storageAccountFileSystemId": {
+                    "value": "[parameters('storageAccountRawFileSystemId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "2690931678674959890"
+                    }
+                  },
+                  "parameters": {
+                    "storageAccountFileSystemId": {
+                      "type": "string"
+                    },
+                    "datafactoryId": {
+                      "type": "string"
+                    }
+                  },
+                  "variables": {
+                    "storageAccountFileSystemName": "[if(greaterOrEquals(length(split(parameters('storageAccountFileSystemId'), '/')), 13), last(split(parameters('storageAccountFileSystemId'), '/')), 'incorrectSegmentLength')]",
+                    "storageAccountName": "[if(greaterOrEquals(length(split(parameters('storageAccountFileSystemId'), '/')), 13), split(parameters('storageAccountFileSystemId'), '/')[8], 'incorrectSegmentLength')]",
+                    "datafactorySubscriptionId": "[if(greaterOrEquals(length(split(parameters('datafactoryId'), '/')), 9), split(parameters('datafactoryId'), '/')[2], subscription().subscriptionId)]",
+                    "datafactoryResourceGroupName": "[if(greaterOrEquals(length(split(parameters('datafactoryId'), '/')), 9), split(parameters('datafactoryId'), '/')[4], resourceGroup().name)]",
+                    "datafactoryName": "[if(greaterOrEquals(length(split(parameters('datafactoryId'), '/')), 9), last(split(parameters('datafactoryId'), '/')), 'incorrectSegmentLength')]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2020-04-01-preview",
+                      "scope": "[format('Microsoft.Storage/storageAccounts/{0}/blobServices/{1}/containers/{2}', split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[0], split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[1], split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[2])]",
+                      "name": "[guid(uniqueString(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[0], split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[1], split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[2]), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('datafactorySubscriptionId'), variables('datafactoryResourceGroupName')), 'Microsoft.DataFactory/factories', variables('datafactoryName'))))]",
+                      "properties": {
+                        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                        "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('datafactorySubscriptionId'), variables('datafactoryResourceGroupName')), 'Microsoft.DataFactory/factories', variables('datafactoryName')), '2018-06-01', 'full').identity.principalId]",
+                        "principalType": "ServicePrincipal"
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'datafactoryIntegration001')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "datafactory001StorageEnrichedCuratedRoleAssignment",
+              "subscriptionId": "[variables('storageAccountEnrichedCuratedSubscriptionId')]",
+              "resourceGroup": "[variables('storageAccountEnrichedCuratedResourceGroupName')]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "datafactoryId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'datafactoryIntegration001'), '2020-10-01').outputs.datafactoryId.value]"
+                  },
+                  "storageAccountFileSystemId": {
+                    "value": "[parameters('storageAccountEnrichedCuratedFileSystemId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.14.6.61914",
+                      "templateHash": "2690931678674959890"
+                    }
+                  },
+                  "parameters": {
+                    "storageAccountFileSystemId": {
+                      "type": "string"
+                    },
+                    "datafactoryId": {
+                      "type": "string"
+                    }
+                  },
+                  "variables": {
+                    "storageAccountFileSystemName": "[if(greaterOrEquals(length(split(parameters('storageAccountFileSystemId'), '/')), 13), last(split(parameters('storageAccountFileSystemId'), '/')), 'incorrectSegmentLength')]",
+                    "storageAccountName": "[if(greaterOrEquals(length(split(parameters('storageAccountFileSystemId'), '/')), 13), split(parameters('storageAccountFileSystemId'), '/')[8], 'incorrectSegmentLength')]",
+                    "datafactorySubscriptionId": "[if(greaterOrEquals(length(split(parameters('datafactoryId'), '/')), 9), split(parameters('datafactoryId'), '/')[2], subscription().subscriptionId)]",
+                    "datafactoryResourceGroupName": "[if(greaterOrEquals(length(split(parameters('datafactoryId'), '/')), 9), split(parameters('datafactoryId'), '/')[4], resourceGroup().name)]",
+                    "datafactoryName": "[if(greaterOrEquals(length(split(parameters('datafactoryId'), '/')), 9), last(split(parameters('datafactoryId'), '/')), 'incorrectSegmentLength')]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2020-04-01-preview",
+                      "scope": "[format('Microsoft.Storage/storageAccounts/{0}/blobServices/{1}/containers/{2}', split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[0], split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[1], split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[2])]",
+                      "name": "[guid(uniqueString(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[0], split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[1], split(format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountFileSystemName')), '/')[2]), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('datafactorySubscriptionId'), variables('datafactoryResourceGroupName')), 'Microsoft.DataFactory/factories', variables('datafactoryName'))))]",
+                      "properties": {
+                        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                        "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('datafactorySubscriptionId'), variables('datafactoryResourceGroupName')), 'Microsoft.DataFactory/factories', variables('datafactoryName')), '2018-06-01', 'full').identity.principalId]",
+                        "principalType": "ServicePrincipal"
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'datafactoryIntegration001')]"
+              ]
+            }
+          ],
+          "outputs": {
+            "datafactoryIntegration001Id": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'datafactoryIntegration001'), '2020-10-01').outputs.datafactoryId.value]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', 'dataServices')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-shared-integration', variables('name')))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "vnetId": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.vnetId.value]"
+    },
+    "nsgId": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.nsgId.value]"
+    },
+    "routeTableId": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.routeTableId.value]"
+    }
+  }
+}

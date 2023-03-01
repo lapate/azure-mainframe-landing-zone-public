@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.14.6.61914",
-      "templateHash": "1885439849933697206"
+      "version": "0.14.85.62628",
+      "templateHash": "12596640374729083942"
     }
   },
   "parameters": {
@@ -42,6 +42,13 @@
         "description": "Specifies the tags that you want to apply to all resources."
       }
     },
+    "partner": {
+      "type": "string",
+      "defaultValue": "generic",
+      "metadata": {
+        "description": "Specifies the partner deployment."
+      }
+    },
     "vnetAddressPrefix": {
       "type": "string",
       "defaultValue": "10.1.0.0/16",
@@ -53,14 +60,35 @@
       "type": "string",
       "defaultValue": "10.1.0.0/24",
       "metadata": {
-        "description": "Specifies the address space of the subnet that is used for general services of the mainframe landing zone."
+        "description": "Specifies the address space of the subnet that is used for app services of the mainframe landing zone."
       }
     },
-    "adSubnetAddressPrefix": {
+    "dataServicesSubnetAddressPrefix": {
       "type": "string",
-      "defaultValue": "10.1.1.0/24",
+      "defaultValue": "10.1.2.0/24",
       "metadata": {
-        "description": "Specifies the address space of the public subnet that is used for the AD farm."
+        "description": "Specifies the address space of the subnet that is used for data services of the mainframe landing zone."
+      }
+    },
+    "dataIntegrationSubnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.1.3.0/24",
+      "metadata": {
+        "description": "Specifies the address space of the subnet that is used for integration services of the mainframe landing zone."
+      }
+    },
+    "externalStorageSubnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.1.4.0/24",
+      "metadata": {
+        "description": "Specifies the address space of the subnet that is used for external storage services of the mainframe landing zone."
+      }
+    },
+    "loggingServicesSubnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.1.5.0/24",
+      "metadata": {
+        "description": "Specifies the address space of the subnet that is used for logging services of the mainframe landing zone."
       }
     },
     "hubVnetId": {
@@ -131,32 +159,20 @@
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "Specifies the resource ID of the private DNS zone for Sql Server."
-      }
-    },
-    "privateDnsZoneIdSynapseDev": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Specifies the resource ID of the private DNS zone for Synapse Dev."
-      }
-    },
-    "privateDnsZoneIdSynapseSql": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Specifies the resource ID of the private DNS zone for Synapse Sql."
+        "description": "Specifies the resource ID of the private DNS zone for Azure Sql Server."
       }
     }
   },
   "variables": {
     "name": "[toLower(format('{0}-{1}', parameters('prefix'), parameters('environment')))]",
+    "Sysguid": "PID-4241702A-BF95-4B5D-82E7-364BF62FE998",
     "tagsDefault": {
       "Owner": "Azure Mainframe Landing Zone",
       "Project": "Azure Mainframe Landing Zone",
       "Environment": "[parameters('environment')]",
       "Toolkit": "bicep",
-      "Name": "[variables('name')]"
+      "Name": "[variables('name')]",
+      "Sysguid": "[variables('Sysguid')]"
     },
     "tagsJoined": "[union(variables('tagsDefault'), parameters('tags'))]",
     "administratorUsername": "SuperMainUser",
@@ -209,7 +225,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "networkServices22",
+      "name": "[format('{0}-networkServices', variables('Sysguid'))]",
       "resourceGroup": "[format('{0}-appServices', variables('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -235,14 +251,23 @@
           "vnetAddressPrefix": {
             "value": "[parameters('vnetAddressPrefix')]"
           },
-          "appServicesSubnetAddressPrefix": {
-            "value": "[parameters('appServicesSubnetAddressPrefix')]"
-          },
           "hubVnetId": {
             "value": "[parameters('hubVnetId')]"
           },
-          "adSubnetAddressPrefix": {
-            "value": "[parameters('adSubnetAddressPrefix')]"
+          "appServicesSubnetAddressPrefix": {
+            "value": "[parameters('appServicesSubnetAddressPrefix')]"
+          },
+          "dataServicesSubnetAddressPrefix": {
+            "value": "[parameters('dataServicesSubnetAddressPrefix')]"
+          },
+          "dataIntegrationSubnetAddressPrefix": {
+            "value": "[parameters('dataIntegrationSubnetAddressPrefix')]"
+          },
+          "externalStorageSubnetAddressPrefix": {
+            "value": "[parameters('externalStorageSubnetAddressPrefix')]"
+          },
+          "loggingServicesSubnetAddressPrefix": {
+            "value": "[parameters('loggingServicesSubnetAddressPrefix')]"
           }
         },
         "template": {
@@ -251,8 +276,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.6.61914",
-              "templateHash": "11782651796563687378"
+              "version": "0.14.85.62628",
+              "templateHash": "427233729868013432"
             }
           },
           "parameters": {
@@ -283,17 +308,21 @@
               "type": "string",
               "defaultValue": "10.1.0.0/24"
             },
-            "adSubnetAddressPrefix": {
+            "dataServicesSubnetAddressPrefix": {
               "type": "string",
-              "defaultValue": "10.1.10.0/29"
+              "defaultValue": "10.1.2.0/24"
             },
-            "dataIntegration001SubnetAddressPrefix": {
+            "dataIntegrationSubnetAddressPrefix": {
               "type": "string",
-              "defaultValue": "10.1.6.0/24"
+              "defaultValue": "10.1.3.0/24"
             },
-            "dataIntegration002SubnetAddressPrefix": {
+            "externalStorageSubnetAddressPrefix": {
               "type": "string",
-              "defaultValue": "10.1.7.0/24"
+              "defaultValue": "10.1.4.0/24"
+            },
+            "loggingServicesSubnetAddressPrefix": {
+              "type": "string",
+              "defaultValue": "10.1.5.0/24"
             },
             "hubVnetId": {
               "type": "string",
@@ -301,10 +330,11 @@
             }
           },
           "variables": {
-            "servicesSubnetName": "ServicesSubnet",
-            "adSubnetName": "ADSubnet",
-            "dataIntegration001SubnetName": "DataIntegration001Subnet",
-            "dataIntegration002SubnetName": "DataIntegration002Subnet",
+            "appServicesSubnetName": "appServicesSubnet",
+            "dataServicesSubnetName": "dataServicesSubnet",
+            "dataIntegrationSubnetName": "dataIntegrationSubnet",
+            "externalStorageSubnetName": "externalStorageSubnet",
+            "loggingServicesSubnetName": "loggingServicesSubnet",
             "hubVnetSubscriptionId": "[if(greaterOrEquals(length(split(parameters('hubVnetId'), '/')), 9), split(parameters('hubVnetId'), '/')[2], subscription().subscriptionId)]",
             "hubVnetResourceGroupName": "[if(greaterOrEquals(length(split(parameters('hubVnetId'), '/')), 9), split(parameters('hubVnetId'), '/')[4], resourceGroup().name)]",
             "hubVnetName": "[if(greaterOrEquals(length(split(parameters('hubVnetId'), '/')), 9), last(split(parameters('hubVnetId'), '/')), 'incorrectSegmentLength')]"
@@ -358,7 +388,7 @@
                 "enableDdosProtection": false,
                 "subnets": [
                   {
-                    "name": "[variables('servicesSubnetName')]",
+                    "name": "[variables('appServicesSubnetName')]",
                     "properties": {
                       "addressPrefix": "[parameters('appServicesSubnetAddressPrefix')]",
                       "addressPrefixes": [],
@@ -376,9 +406,9 @@
                     }
                   },
                   {
-                    "name": "[variables('dataIntegration001SubnetName')]",
+                    "name": "[variables('dataServicesSubnetName')]",
                     "properties": {
-                      "addressPrefix": "[parameters('dataIntegration001SubnetAddressPrefix')]",
+                      "addressPrefix": "[parameters('dataServicesSubnetAddressPrefix')]",
                       "addressPrefixes": [],
                       "networkSecurityGroup": {
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
@@ -394,9 +424,9 @@
                     }
                   },
                   {
-                    "name": "[variables('dataIntegration002SubnetName')]",
+                    "name": "[variables('dataIntegrationSubnetName')]",
                     "properties": {
-                      "addressPrefix": "[parameters('dataIntegration002SubnetAddressPrefix')]",
+                      "addressPrefix": "[parameters('dataIntegrationSubnetAddressPrefix')]",
                       "addressPrefixes": [],
                       "networkSecurityGroup": {
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
@@ -412,9 +442,27 @@
                     }
                   },
                   {
-                    "name": "[variables('adSubnetName')]",
+                    "name": "[variables('externalStorageSubnetName')]",
                     "properties": {
-                      "addressPrefix": "[parameters('adSubnetAddressPrefix')]",
+                      "addressPrefix": "[parameters('externalStorageSubnetAddressPrefix')]",
+                      "addressPrefixes": [],
+                      "networkSecurityGroup": {
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
+                      },
+                      "routeTable": {
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+                      },
+                      "delegations": [],
+                      "privateEndpointNetworkPolicies": "Disabled",
+                      "privateLinkServiceNetworkPolicies": "Disabled",
+                      "serviceEndpointPolicies": [],
+                      "serviceEndpoints": []
+                    }
+                  },
+                  {
+                    "name": "[variables('loggingServicesSubnetName')]",
+                    "properties": {
+                      "addressPrefix": "[parameters('loggingServicesSubnetAddressPrefix')]",
                       "addressPrefixes": [],
                       "networkSecurityGroup": {
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
@@ -481,8 +529,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "9339036640376652413"
+                      "version": "0.14.85.62628",
+                      "templateHash": "10774796075468366015"
                     }
                   },
                   "parameters": {
@@ -538,9 +586,21 @@
               "type": "string",
               "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix'))), '2020-06-01').subnets[0].id]"
             },
-            "adServicesSubnetId": {
+            "dataServicesSubnetId": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix'))), '2020-06-01').subnets[1].id]"
+            },
+            "dataIntegrationSubnetId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix'))), '2020-06-01').subnets[2].id]"
+            },
+            "externalStorageSubnetId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix'))), '2020-06-01').subnets[3].id]"
+            },
+            "loggingServicesSubnetId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('prefix'))), '2020-06-01').subnets[4].id]"
             }
           }
         }
@@ -550,9 +610,10 @@
       ]
     },
     {
+      "condition": "[equals(parameters('partner'), 'raincode')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "appServices22",
+      "name": "TODO-Raincode",
       "resourceGroup": "[format('{0}-appServices', variables('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -576,7 +637,7 @@
             "value": "[parameters('administratorPassword')]"
           },
           "subnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.appServicesSubnetId.value]"
           }
         },
         "template": {
@@ -585,8 +646,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.6.61914",
-              "templateHash": "14335456842594376065"
+              "version": "0.14.85.62628",
+              "templateHash": "4145369436841466249"
             }
           },
           "parameters": {
@@ -841,13 +902,309 @@
       },
       "dependsOn": [
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-appServices', variables('name')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid')))]"
+      ]
+    },
+    {
+      "condition": "[equals(parameters('partner'), 'generic')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('{0}-appServicesGeneric', variables('Sysguid'))]",
+      "resourceGroup": "[format('{0}-appServices', variables('name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "prefix": {
+            "value": "[variables('name')]"
+          },
+          "tags": {
+            "value": "[variables('tagsJoined')]"
+          },
+          "adminUsername": {
+            "value": "[variables('administratorUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('administratorPassword')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.appServicesSubnetId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.85.62628",
+              "templateHash": "4145369436841466249"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "adminUsername": {
+              "type": "string",
+              "metadata": {
+                "description": "Admin username"
+              }
+            },
+            "adminPassword": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Admin password"
+              }
+            },
+            "vmNamePrefix": {
+              "type": "string",
+              "defaultValue": "[format('{0}vm', parameters('prefix'))]",
+              "metadata": {
+                "description": "Prefix to use for VM names"
+              }
+            },
+            "vmSize": {
+              "type": "string",
+              "defaultValue": "Standard_D2s_v3",
+              "metadata": {
+                "description": "Size of the virtual machines"
+              }
+            },
+            "loadBalancerName": {
+              "type": "string",
+              "defaultValue": "[format('{0}-ilb', parameters('prefix'))]",
+              "metadata": {
+                "description": "Loab Balancer name"
+              }
+            },
+            "networkInterfaceName": {
+              "type": "string",
+              "defaultValue": "[format('{0}-nic', parameters('prefix'))]",
+              "metadata": {
+                "description": "Network Interface name"
+              }
+            },
+            "availabilitySetName": {
+              "type": "string",
+              "defaultValue": "[format('{0}-AvSet', parameters('prefix'))]",
+              "metadata": {
+                "description": "Availability Set name"
+              }
+            },
+            "storageAccountType": {
+              "type": "string",
+              "defaultValue": "Standard_LRS",
+              "metadata": {
+                "description": "Storage Type for Vhds"
+              }
+            },
+            "subnetId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Id of the subnet"
+              }
+            }
+          },
+          "variables": {
+            "storageAccountName": "[uniqueString(resourceGroup().id)]",
+            "numberOfInstances": 2
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-08-01",
+              "name": "[variables('storageAccountName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "[parameters('storageAccountType')]"
+              },
+              "kind": "StorageV2"
+            },
+            {
+              "type": "Microsoft.Compute/availabilitySets",
+              "apiVersion": "2021-11-01",
+              "name": "[parameters('availabilitySetName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Aligned"
+              },
+              "properties": {
+                "platformUpdateDomainCount": 2,
+                "platformFaultDomainCount": 2
+              }
+            },
+            {
+              "copy": {
+                "name": "networkInterface",
+                "count": "[length(range(0, variables('numberOfInstances')))]"
+              },
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig1",
+                    "properties": {
+                      "privateIPAllocationMethod": "Dynamic",
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "loadBalancerBackendAddressPools": [
+                        {
+                          "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancerName'), 'BackendPool1')]"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancerName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/loadBalancers",
+              "apiVersion": "2021-05-01",
+              "name": "[parameters('loadBalancerName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard"
+              },
+              "properties": {
+                "frontendIPConfigurations": [
+                  {
+                    "properties": {
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "privateIPAddress": "10.1.0.6",
+                      "privateIPAllocationMethod": "Static"
+                    },
+                    "name": "LoadBalancerFrontend"
+                  }
+                ],
+                "backendAddressPools": [
+                  {
+                    "name": "BackendPool1"
+                  }
+                ],
+                "loadBalancingRules": [
+                  {
+                    "properties": {
+                      "frontendIPConfiguration": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', parameters('loadBalancerName'), 'LoadBalancerFrontend')]"
+                      },
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancerName'), 'BackendPool1')]"
+                      },
+                      "probe": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/probes', parameters('loadBalancerName'), 'lbprobe')]"
+                      },
+                      "protocol": "Tcp",
+                      "frontendPort": 80,
+                      "backendPort": 80,
+                      "idleTimeoutInMinutes": 15
+                    },
+                    "name": "lbrule"
+                  }
+                ],
+                "probes": [
+                  {
+                    "properties": {
+                      "protocol": "Tcp",
+                      "port": 80,
+                      "intervalInSeconds": 15,
+                      "numberOfProbes": 2
+                    },
+                    "name": "lbprobe"
+                  }
+                ]
+              }
+            },
+            {
+              "copy": {
+                "name": "vm",
+                "count": "[length(range(0, variables('numberOfInstances')))]"
+              },
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}{1}', parameters('vmNamePrefix'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "availabilitySet": {
+                  "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
+                },
+                "hardwareProfile": {
+                  "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                  "computerName": "[format('{0}{1}', parameters('vmNamePrefix'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+                  "adminUsername": "[parameters('adminUsername')]",
+                  "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                  "imageReference": {
+                    "publisher": "MicrosoftWindowsServer",
+                    "offer": "WindowsServer",
+                    "sku": "2019-Datacenter",
+                    "version": "latest"
+                  },
+                  "osDisk": {
+                    "createOption": "FromImage"
+                  }
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[range(0, variables('numberOfInstances'))[copyIndex()]]))]"
+                    }
+                  ]
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true,
+                    "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2021-08-01').primaryEndpoints.blob]"
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[range(0, variables('numberOfInstances'))[copyIndex()]]))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-appServices', variables('name')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid')))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "loggingServices",
+      "name": "[format('{0}-loggingServices', variables('Sysguid'))]",
       "resourceGroup": "[format('{0}-logging', variables('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -864,8 +1221,11 @@
           "tags": {
             "value": "[variables('tagsJoined')]"
           },
+          "Sysguid": {
+            "value": "[variables('Sysguid')]"
+          },
           "subnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.loggingServicesSubnetId.value]"
           },
           "privateDnsZoneIdKeyVault": {
             "value": "[parameters('privateDnsZoneIdKeyVault')]"
@@ -877,8 +1237,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.6.61914",
-              "templateHash": "3452892674100342871"
+              "version": "0.14.85.62628",
+              "templateHash": "14654303063149784500"
             }
           },
           "parameters": {
@@ -897,6 +1257,10 @@
             "privateDnsZoneIdKeyVault": {
               "type": "string",
               "defaultValue": ""
+            },
+            "Sysguid": {
+              "type": "string",
+              "defaultValue": ""
             }
           },
           "variables": {
@@ -907,7 +1271,7 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "keyVault001",
+              "name": "[format('{0}-keyVault001', parameters('Sysguid'))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -936,8 +1300,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "13458187442905411"
+                      "version": "0.14.85.62628",
+                      "templateHash": "5638703788553744143"
                     }
                   },
                   "parameters": {
@@ -1055,7 +1419,7 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "logAnalytics001",
+              "name": "[format('{0}-logAnalytics001', parameters('Sysguid'))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -1078,8 +1442,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "4572039439911511875"
+                      "version": "0.14.85.62628",
+                      "templateHash": "615983241146076709"
                     }
                   },
                   "parameters": {
@@ -1123,7 +1487,7 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "logAnalytics001SecretDeployment",
+              "name": "[format('{0}-lA001Secret', parameters('Sysguid'))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -1131,10 +1495,10 @@
                 "mode": "Incremental",
                 "parameters": {
                   "keyVaultId": {
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyVault001'), '2020-10-01').outputs.keyvaultId.value]"
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-keyVault001', parameters('Sysguid'))), '2020-10-01').outputs.keyvaultId.value]"
                   },
                   "logAnalyticsId": {
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'logAnalytics001'), '2020-10-01').outputs.logAnalyticsWorkspaceId.value]"
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-logAnalytics001', parameters('Sysguid'))), '2020-10-01').outputs.logAnalyticsWorkspaceId.value]"
                   }
                 },
                 "template": {
@@ -1143,8 +1507,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "12640221672191501345"
+                      "version": "0.14.85.62628",
+                      "templateHash": "13747445226459543692"
                     }
                   },
                   "parameters": {
@@ -1202,36 +1566,36 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'keyVault001')]",
-                "[resourceId('Microsoft.Resources/deployments', 'logAnalytics001')]"
+                "[resourceId('Microsoft.Resources/deployments', format('{0}-keyVault001', parameters('Sysguid')))]",
+                "[resourceId('Microsoft.Resources/deployments', format('{0}-logAnalytics001', parameters('Sysguid')))]"
               ]
             }
           ],
           "outputs": {
             "logAnalytics001WorkspaceKeyVaultId": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyVault001'), '2020-10-01').outputs.keyvaultId.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-keyVault001', parameters('Sysguid'))), '2020-10-01').outputs.keyvaultId.value]"
             },
             "logAnalytics001WorkspaceIdSecretName": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'logAnalytics001SecretDeployment'), '2020-10-01').outputs.logAnalyticsWorkspaceIdSecretName.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-lA001Secret', parameters('Sysguid'))), '2020-10-01').outputs.logAnalyticsWorkspaceIdSecretName.value]"
             },
             "logAnalytics001WorkspaceKeySecretName": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'logAnalytics001SecretDeployment'), '2020-10-01').outputs.logAnalyticsWorkspaceKeySecretName.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-lA001Secret', parameters('Sysguid'))), '2020-10-01').outputs.logAnalyticsWorkspaceKeySecretName.value]"
             }
           }
         }
       },
       "dependsOn": [
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-logging', variables('name')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid')))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "fileshareervices",
+      "name": "[format('{0}-fileShareServices', variables('Sysguid'))]",
       "resourceGroup": "[format('{0}-appServices', variables('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -1249,7 +1613,7 @@
             "value": "[variables('tagsJoined')]"
           },
           "subnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.appServicesSubnetId.value]"
           },
           "privateDnsZoneIdBlob": {
             "value": "[parameters('privateDnsZoneIdBlob')]"
@@ -1264,8 +1628,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.6.61914",
-              "templateHash": "15547240161991688065"
+              "version": "0.14.85.62628",
+              "templateHash": "2526612342110487553"
             }
           },
           "parameters": {
@@ -1385,13 +1749,13 @@
       },
       "dependsOn": [
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-appServices', variables('name')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid')))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "dataServices",
+      "name": "[format('{0}-dataServices', variables('Sysguid'))]",
       "resourceGroup": "[format('{0}-dataservices', variables('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -1409,10 +1773,13 @@
             "value": "[variables('tagsJoined')]"
           },
           "subnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.dataServicesSubnetId.value]"
           },
           "privateDnsZoneIdBlob": {
             "value": "[parameters('privateDnsZoneIdBlob')]"
+          },
+          "Sysguid": {
+            "value": "[variables('Sysguid')]"
           },
           "mainframeLandingZoneSubscriptionIds": {
             "value": "[parameters('mainframeLandingZoneSubscriptionIds')]"
@@ -1424,8 +1791,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.6.61914",
-              "templateHash": "12872118753084072916"
+              "version": "0.14.85.62628",
+              "templateHash": "17817057608202128087"
             }
           },
           "parameters": {
@@ -1448,6 +1815,10 @@
             "mainframeLandingZoneSubscriptionIds": {
               "type": "array",
               "defaultValue": []
+            },
+            "Sysguid": {
+              "type": "string",
+              "defaultValue": ""
             }
           },
           "variables": {
@@ -1469,7 +1840,7 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "storageRaw",
+              "name": "[format('{0}-storageRaw', parameters('Sysguid'))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -1491,6 +1862,9 @@
                   "privateDnsZoneIdBlob": {
                     "value": "[parameters('privateDnsZoneIdBlob')]"
                   },
+                  "Sysguid": {
+                    "value": "[parameters('Sysguid')]"
+                  },
                   "fileSystemNames": {
                     "value": "[variables('domainFileSytemNames')]"
                   },
@@ -1504,8 +1878,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "4291910241069482643"
+                      "version": "0.14.85.62628",
+                      "templateHash": "15467620742536726131"
                     }
                   },
                   "parameters": {
@@ -1539,6 +1913,10 @@
                     "mainframeLandingZoneSubscriptionIds": {
                       "type": "array",
                       "defaultValue": []
+                    },
+                    "Sysguid": {
+                      "type": "string",
+                      "defaultValue": ""
                     }
                   },
                   "variables": {
@@ -1663,7 +2041,7 @@
                       },
                       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
                       "apiVersion": "2021-02-01",
-                      "name": "[format('{0}/{1}/{2}', variables('storageNameCleaned'), 'default', parameters('fileSystemNames')[copyIndex()])]",
+                      "name": "[format('{0}/{1}/{2}', variables('storageNameCleaned'), 'default', format('{0}', parameters('fileSystemNames')[copyIndex()]))]",
                       "properties": {
                         "publicAccess": "None",
                         "metadata": {}
@@ -1788,7 +2166,7 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "storageEnrichedCurated",
+              "name": "[format('{0}-storageEnrichedCurated', parameters('Sysguid'))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -1823,8 +2201,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "4291910241069482643"
+                      "version": "0.14.85.62628",
+                      "templateHash": "15467620742536726131"
                     }
                   },
                   "parameters": {
@@ -1858,6 +2236,10 @@
                     "mainframeLandingZoneSubscriptionIds": {
                       "type": "array",
                       "defaultValue": []
+                    },
+                    "Sysguid": {
+                      "type": "string",
+                      "defaultValue": ""
                     }
                   },
                   "variables": {
@@ -1982,7 +2364,7 @@
                       },
                       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
                       "apiVersion": "2021-02-01",
-                      "name": "[format('{0}/{1}/{2}', variables('storageNameCleaned'), 'default', parameters('fileSystemNames')[copyIndex()])]",
+                      "name": "[format('{0}/{1}/{2}', variables('storageNameCleaned'), 'default', format('{0}', parameters('fileSystemNames')[copyIndex()]))]",
                       "properties": {
                         "publicAccess": "None",
                         "metadata": {}
@@ -2107,7 +2489,7 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "storageWorkspace",
+              "name": "[format('{0}-storageWorkspace', parameters('Sysguid'))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -2142,8 +2524,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "4291910241069482643"
+                      "version": "0.14.85.62628",
+                      "templateHash": "15467620742536726131"
                     }
                   },
                   "parameters": {
@@ -2177,6 +2559,10 @@
                     "mainframeLandingZoneSubscriptionIds": {
                       "type": "array",
                       "defaultValue": []
+                    },
+                    "Sysguid": {
+                      "type": "string",
+                      "defaultValue": ""
                     }
                   },
                   "variables": {
@@ -2301,7 +2687,7 @@
                       },
                       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
                       "apiVersion": "2021-02-01",
-                      "name": "[format('{0}/{1}/{2}', variables('storageNameCleaned'), 'default', parameters('fileSystemNames')[copyIndex()])]",
+                      "name": "[format('{0}/{1}/{2}', variables('storageNameCleaned'), 'default', format('{0}', parameters('fileSystemNames')[copyIndex()]))]",
                       "properties": {
                         "publicAccess": "None",
                         "metadata": {}
@@ -2427,40 +2813,40 @@
           "outputs": {
             "storageRawId": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageRaw'), '2020-10-01').outputs.storageId.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-storageRaw', parameters('Sysguid'))), '2020-10-01').outputs.storageId.value]"
             },
             "storageRawFileSystemId": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageRaw'), '2020-10-01').outputs.storageFileSystemIds.value[0].storageFileSystemId]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-storageRaw', parameters('Sysguid'))), '2020-10-01').outputs.storageFileSystemIds.value[0].storageFileSystemId]"
             },
             "storageEnrichedCuratedId": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageEnrichedCurated'), '2020-10-01').outputs.storageId.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-storageEnrichedCurated', parameters('Sysguid'))), '2020-10-01').outputs.storageId.value]"
             },
             "storageEnrichedCuratedFileSystemId": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageEnrichedCurated'), '2020-10-01').outputs.storageFileSystemIds.value[0].storageFileSystemId]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-storageEnrichedCurated', parameters('Sysguid'))), '2020-10-01').outputs.storageFileSystemIds.value[0].storageFileSystemId]"
             },
             "storageWorkspaceId": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageWorkspace'), '2020-10-01').outputs.storageId.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-storageWorkspace', parameters('Sysguid'))), '2020-10-01').outputs.storageId.value]"
             },
             "storageWorkspaceFileSystemId": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageWorkspace'), '2020-10-01').outputs.storageFileSystemIds.value[0].storageFileSystemId]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-storageWorkspace', parameters('Sysguid'))), '2020-10-01').outputs.storageFileSystemIds.value[0].storageFileSystemId]"
             }
           }
         }
       },
       "dependsOn": [
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-dataservices', variables('name')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid')))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "data01",
+      "name": "[format('{0}-data01', variables('Sysguid'))]",
       "resourceGroup": "[format('{0}-dataservices', variables('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -2475,7 +2861,7 @@
             "value": "[parameters('tags')]"
           },
           "subnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.dataServicesSubnetId.value]"
           },
           "administratorUsername": {
             "value": "[variables('sqlAdministratorUsername')]"
@@ -2502,8 +2888,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.6.61914",
-              "templateHash": "5767908457172257277"
+              "version": "0.14.85.62628",
+              "templateHash": "16804431355409911414"
             }
           },
           "parameters": {
@@ -2652,13 +3038,13 @@
       },
       "dependsOn": [
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-dataservices', variables('name')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid')))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "externalStorageServices",
+      "name": "[format('{0}-externalStorageServices', variables('Sysguid'))]",
       "resourceGroup": "[format('{0}-externalstorage', variables('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -2675,8 +3061,11 @@
           "tags": {
             "value": "[variables('tagsJoined')]"
           },
+          "Sysguid": {
+            "value": "[variables('Sysguid')]"
+          },
           "subnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.externalStorageSubnetId.value]"
           },
           "privateDnsZoneIdBlob": {
             "value": "[parameters('privateDnsZoneIdBlob')]"
@@ -2691,8 +3080,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.6.61914",
-              "templateHash": "11930132618838422733"
+              "version": "0.14.85.62628",
+              "templateHash": "16987356077357122277"
             }
           },
           "parameters": {
@@ -2715,6 +3104,10 @@
             "mainframeLandingZoneSubscriptionIds": {
               "type": "array",
               "defaultValue": []
+            },
+            "Sysguid": {
+              "type": "string",
+              "defaultValue": ""
             }
           },
           "variables": {
@@ -2727,7 +3120,7 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "storageExternal001",
+              "name": "[format('{0}-storageExternal001', parameters('Sysguid'))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -2762,8 +3155,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "17668966431934719474"
+                      "version": "0.14.85.62628",
+                      "templateHash": "6498487609196391824"
                     }
                   },
                   "parameters": {
@@ -2952,13 +3345,13 @@
       },
       "dependsOn": [
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-externalstorage', variables('name')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid')))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "sharedIntegrationServices",
+      "name": "[format('{0}-sharedIntServices', variables('Sysguid'))]",
       "resourceGroup": "[format('{0}-shared-integration', variables('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -2976,22 +3369,25 @@
             "value": "[variables('tagsJoined')]"
           },
           "subnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.appServicesSubnetId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.dataIntegrationSubnetId.value]"
           },
           "vnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.vnetId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.vnetId.value]"
+          },
+          "Sysguid": {
+            "value": "[variables('Sysguid')]"
           },
           "storageRawId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', 'dataServices'), '2020-10-01').outputs.storageRawId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-dataServices', variables('Sysguid'))), '2020-10-01').outputs.storageRawId.value]"
           },
           "storageAccountRawFileSystemId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', 'dataServices'), '2020-10-01').outputs.storageRawFileSystemId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-dataServices', variables('Sysguid'))), '2020-10-01').outputs.storageRawFileSystemId.value]"
           },
           "storageEnrichedCuratedId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', 'dataServices'), '2020-10-01').outputs.storageEnrichedCuratedId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-dataServices', variables('Sysguid'))), '2020-10-01').outputs.storageEnrichedCuratedId.value]"
           },
           "storageAccountEnrichedCuratedFileSystemId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', 'dataServices'), '2020-10-01').outputs.storageEnrichedCuratedFileSystemId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-dataServices', variables('Sysguid'))), '2020-10-01').outputs.storageEnrichedCuratedFileSystemId.value]"
           },
           "privateDnsZoneIdKeyVault": {
             "value": "[parameters('privateDnsZoneIdKeyVault')]"
@@ -3009,8 +3405,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.6.61914",
-              "templateHash": "16607706214103851570"
+              "version": "0.14.85.62628",
+              "templateHash": "3495868733466005834"
             }
           },
           "parameters": {
@@ -3051,6 +3447,10 @@
             "privateDnsZoneIdDataFactoryPortal": {
               "type": "string",
               "defaultValue": ""
+            },
+            "Sysguid": {
+              "type": "string",
+              "defaultValue": ""
             }
           },
           "variables": {
@@ -3065,7 +3465,7 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "keyVault001",
+              "name": "[format('{0}-keyVault001', parameters('Sysguid'))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -3094,8 +3494,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "13458187442905411"
+                      "version": "0.14.85.62628",
+                      "templateHash": "5638703788553744143"
                     }
                   },
                   "parameters": {
@@ -3213,7 +3613,7 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "datafactoryIntegration001",
+              "name": "[format('{0}-dfInt001', parameters('Sysguid'))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -3245,7 +3645,7 @@
                     "value": "[parameters('storageEnrichedCuratedId')]"
                   },
                   "keyVault001Id": {
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'keyVault001'), '2020-10-01').outputs.keyvaultId.value]"
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-keyVault001', parameters('Sysguid'))), '2020-10-01').outputs.keyvaultId.value]"
                   }
                 },
                 "template": {
@@ -3254,8 +3654,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "5973857526229373868"
+                      "version": "0.14.85.62628",
+                      "templateHash": "13899758225122072801"
                     }
                   },
                   "parameters": {
@@ -3560,7 +3960,7 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'keyVault001')]"
+                "[resourceId('Microsoft.Resources/deployments', format('{0}-keyVault001', parameters('Sysguid')))]"
               ]
             },
             {
@@ -3576,7 +3976,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "datafactoryId": {
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'datafactoryIntegration001'), '2020-10-01').outputs.datafactoryId.value]"
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-dfInt001', parameters('Sysguid'))), '2020-10-01').outputs.datafactoryId.value]"
                   },
                   "storageAccountFileSystemId": {
                     "value": "[parameters('storageAccountRawFileSystemId')]"
@@ -3588,8 +3988,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "2690931678674959890"
+                      "version": "0.14.85.62628",
+                      "templateHash": "17309170539721936304"
                     }
                   },
                   "parameters": {
@@ -3623,7 +4023,7 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'datafactoryIntegration001')]"
+                "[resourceId('Microsoft.Resources/deployments', format('{0}-dfInt001', parameters('Sysguid')))]"
               ]
             },
             {
@@ -3639,7 +4039,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "datafactoryId": {
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'datafactoryIntegration001'), '2020-10-01').outputs.datafactoryId.value]"
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-dfInt001', parameters('Sysguid'))), '2020-10-01').outputs.datafactoryId.value]"
                   },
                   "storageAccountFileSystemId": {
                     "value": "[parameters('storageAccountEnrichedCuratedFileSystemId')]"
@@ -3651,8 +4051,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.6.61914",
-                      "templateHash": "2690931678674959890"
+                      "version": "0.14.85.62628",
+                      "templateHash": "17309170539721936304"
                     }
                   },
                   "parameters": {
@@ -3686,21 +4086,21 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', 'datafactoryIntegration001')]"
+                "[resourceId('Microsoft.Resources/deployments', format('{0}-dfInt001', parameters('Sysguid')))]"
               ]
             }
           ],
           "outputs": {
             "datafactoryIntegration001Id": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'datafactoryIntegration001'), '2020-10-01').outputs.datafactoryId.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-dfInt001', parameters('Sysguid'))), '2020-10-01').outputs.datafactoryId.value]"
             }
           }
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', 'dataServices')]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-dataservices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-dataServices', variables('Sysguid')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid')))]",
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-shared-integration', variables('name')))]"
       ]
     }
@@ -3708,15 +4108,15 @@
   "outputs": {
     "vnetId": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.vnetId.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.vnetId.value]"
     },
     "nsgId": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.nsgId.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.nsgId.value]"
     },
     "routeTableId": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', 'networkServices22'), '2020-10-01').outputs.routeTableId.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.routeTableId.value]"
     }
   }
 }

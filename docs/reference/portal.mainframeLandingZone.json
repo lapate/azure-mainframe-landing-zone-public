@@ -637,7 +637,7 @@
                                     "type": "Microsoft.Common.TextBox",
                                     "visible": true,
                                     "defaultValue": "10.1.4.0/24",
-                                    "toolTip": "Specify a CIDR range for the private Subnet of the shared Databricks Product Workspace within the range [24,28].",
+                                    "toolTip": "Specify a CIDR range for the private Subnet of the  External Storage within the range [24,28].",
                                     "constraints": {
                                         "required": true,
                                         "validations": [
@@ -1123,7 +1123,7 @@
                 "privateDnsZoneIdDataFactory": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactory), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactory)]",
                 "privateDnsZoneIdDataFactoryPortal": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactoryPortal), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactoryPortal)]",
                 "privateDnsZoneIdBlob": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdBlob), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdBlob)]",
-                "privateDnsZoneIdSqlServer": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdSqlServer), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdSqlServer)]",
+                "privateDnsZoneIdSqlServer": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdSqlServer), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdSqlServer)]"
             }
         }
     }

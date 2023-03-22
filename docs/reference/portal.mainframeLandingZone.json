@@ -1,1099 +1,1130 @@
 {
     "$schema": "<relative path to createFormUI.schema.json>",
     "view": {
-      "kind": "Form",
-      "properties": {
-        "title": "Legacy Workload Modernization - Azure Mainframe Landing Zone",
-        "steps": [
-          {
-            "name": "basics",
-            "label": "Azure Mainframe Landing Zone",
-            "elements": [
-              {
-                "name": "infoBoxAzureMainframeLandingZone",
-                "type": "Microsoft.Common.InfoBox",
-                "visible": true,
-                "options": {
-                  "text": "Azure Mainframe Landing Zone is a prescriptive reference architecture for legacy workload migration/modernization with reference implementation provided by Microsoft and Partners. Visit '' for more details about the solution pattern.",
-                  "style": "Info",
-                  "uri": ""
-                }
-              },
-              {
-                "name": "deploymentDetails",
-                "label": "Deployment Details",
-                "type": "Microsoft.Common.Section",
-                "visible": true,
-                "elements": [
-                  {
-                    "name": "deploymentDetailsText",
-                    "type": "Microsoft.Common.TextBlock",
-                    "visible": true,
-                    "options": {
-                      "text": "Select the subscription as well as the location to specify the scope of your Azure Mainframe Landing Zone deployment.",
-                      "link": {
-                        "label": "",
-                        "uri": ""
-                      }
-                    }
-                  },
-                  {
-                    "name": "subscriptionApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "GET",
-                      "path": "subscriptions?api-version=2020-01-01"
-                    }
-                  },
-                  {
-                    "name": "subscriptionId",
-                    "label": "Subscription",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": true,
-                    "defaultValue": "",
-                    "toolTip": "Select the Subscription for your Azure Mainframe Landing Zone.",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "infoBoxLocation",
-                    "type": "Microsoft.Common.InfoBox",
-                    "visible": true,
-                    "options": {
-                      "text": "Since not all service features are available in all regions, this deployment is available in a subset of regions.",
-                      "style": "Info"
-                    }
-                  },
-                  {
-                    "name": "locationsApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "GET",
-                      "path": "locations?api-version=2019-11-01"
-                    }
-                  },
-                  {
-                    "name": "locationName",
-                    "label": "Location",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": true,
-                    "defaultValue": "",
-                    "toolTip": "Select the Location for your Azure Mainframe Landing Zone.",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(filter(steps('basics').deploymentDetails.locationsApi.value,(item) => contains(split('southafricanorth,australiaeast,centralindia,japaneast,southeastasia,southindia,canadacentral,francecentral,germanywestcentral,northeurope,uksouth,westeurope,brazilsouth,centralus,eastus,eastus2,southcentralus,westcentralus,westus2', ','), item.name)),(item) => parse(concat('{\"label\":\"', item.regionalDisplayName, '\",\"value\":\"', item.name, '\"}')))]",
-                      "required": true
-                    }
-                  }
-                ]
-              },
-              {
-                "name": "mainframeLandingZoneName",
-                "label": "Mainframe Landing Zone Name",
-                "type": "Microsoft.Common.Section",
-                "visible": true,
-                "elements": [
-                  {
-                    "name": "mainframeLandingZoneNameText",
-                    "type": "Microsoft.Common.TextBlock",
-                    "visible": true,
-                    "options": {
-                      "text": "Specify a prefix and select an environment (Development, Test, Production) which will both be used as a prefix for all resource names. Independent of the environment, the same resources get deployed.",
-                      "link": {
-                        "label": "",
-                        "uri": ""
-                      }
-                    }
-                  },
-                  {
-                    "name": "environment",
-                    "label": "Environment",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": true,
-                    "defaultValue": "Development",
-                    "toolTip": "Select the environment for the deployment.",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": [
+        "kind": "Form",
+        "properties": {
+            "title": "Legacy Workload Modernization - Azure Mainframe Landing Zone",
+            "steps": [
+                {
+                    "name": "basics",
+                    "label": "Azure Mainframe Landing Zone",
+                    "elements": [
                         {
-                          "label": "Development",
-                          "description": "Select if you want to deploy a development environment.",
-                          "value": "dev"
-                        },
-                        {
-                          "label": "Test",
-                          "description": "Select if you want to deploy a test environment.",
-                          "value": "tst"
-                        },
-                        {
-                          "label": "Production",
-                          "description": "Select if you want to deploy a production environment.",
-                          "value": "prd"
-                        }
-                      ],
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "partner",
-                    "label": "Partner",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": true,
-                    "defaultValue": "generic",
-                    "toolTip": "Select the partner solution or leave generic for the deployment.",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": [
-                        {
-                          "label": "Generic",
-                          "description": "Select if you want to use Generic template for deployment.",
-                          "value": "generic"
-                        },
-                        {
-                          "label": "Raincode",
-                          "description": "Select if you want to use Raincode template for deployment.",
-                          "value": "raincode"
-                        }
-                      ],
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "mainframeLandingZonePrefix",
-                    "label": "Main Frame Landing Zone Prefix",
-                    "type": "Microsoft.Common.TextBox",
-                    "visible": true,
-                    "defaultValue": "",
-                    "toolTip": "Specify a prefix (min 1 and max 10 lowercase characters and numbers).",
-                    "constraints": {
-                      "required": true,
-                      "validations": [
-                        {
-                          "regex": "^[a-z0-9]{1,10}$",
-                          "message": "The prefix must be between 1-10 lowercase characters and numbers."
-                        },
-                        {
-                          "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.keyVaultNameApi001.nameAvailable, false))]",
-                          "message": "Prefix currently unavailable. Please choose a different one."
-                        },
-                        {
-                          "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.keyVaultNameApi002.nameAvailable, false))]",
-                          "message": "Prefix currently unavailable. Please choose a different one."
-                        },
-                        {
-                          "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.keyVaultNameApi003.nameAvailable, false))]",
-                          "message": "Prefix currently unavailable. Please choose a different one."
-                        },
-                        {
-                          "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.storageAccountNameApi001.nameAvailable, false))]",
-                          "message": "Prefix currently unavailable. Please choose a different one."
-                        },
-                        {
-                          "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.storageAccountNameApi002.nameAvailable, false))]",
-                          "message": "Prefix currently unavailable. Please choose a different one."
-                        },
-                        {
-                          "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.storageAccountNameApi003.nameAvailable, false))]",
-                          "message": "Prefix currently unavailable. Please choose a different one."
-                        },
-                        {
-                          "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.storageAccountNameApi004.nameAvailable, false))]",
-                          "message": "Prefix currently unavailable. Please choose a different one."
-                        },
-                        {
-                          "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.storageAccountNameApi005.nameAvailable, false))]",
-                          "message": "Prefix currently unavailable. Please choose a different one."
-                        },
-                        {
-                          "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.sqlServerNameApi.available, false))]",
-                          "message": "Prefix currently unavailable. Please choose a different one."
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "name": "keyVaultNameApi001",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "POST",
-                      "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.KeyVault/checkNameAvailability?api-version=2019-09-01')]",
-                      "body": {
-                        "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, '-', steps('basics').mainframeLandingZoneName.environment, '-vault001')]",
-                        "type": "Microsoft.KeyVault/vaults"
-                      }
-                    }
-                  },
-                  {
-                    "name": "keyVaultNameApi002",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "POST",
-                      "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.KeyVault/checkNameAvailability?api-version=2019-09-01')]",
-                      "body": {
-                        "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, '-', steps('basics').mainframeLandingZoneName.environment, '-vault002')]",
-                        "type": "Microsoft.KeyVault/vaults"
-                      }
-                    }
-                  },
-                  {
-                    "name": "keyVaultNameApi003",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "POST",
-                      "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.KeyVault/checkNameAvailability?api-version=2019-09-01')]",
-                      "body": {
-                        "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, '-', steps('basics').mainframeLandingZoneName.environment, '-vault003')]",
-                        "type": "Microsoft.KeyVault/vaults"
-                      }
-                    }
-                  },
-                  {
-                    "name": "storageAccountNameApi001",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "POST",
-                      "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Storage/checkNameAvailability?api-version=2021-04-01')]",
-                      "body": {
-                        "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, steps('basics').mainframeLandingZoneName.environment, 'raw')]",
-                        "type": "Microsoft.Storage/storageAccounts"
-                      }
-                    }
-                  },
-                  {
-                    "name": "storageAccountNameApi002",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "POST",
-                      "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Storage/checkNameAvailability?api-version=2021-04-01')]",
-                      "body": {
-                        "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, steps('basics').mainframeLandingZoneName.environment, 'encur')]",
-                        "type": "Microsoft.Storage/storageAccounts"
-                      }
-                    }
-                  },
-                  {
-                    "name": "storageAccountNameApi003",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "POST",
-                      "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Storage/checkNameAvailability?api-version=2021-04-01')]",
-                      "body": {
-                        "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, steps('basics').mainframeLandingZoneName.environment, 'work')]",
-                        "type": "Microsoft.Storage/storageAccounts"
-                      }
-                    }
-                  },
-                  {
-                    "name": "storageAccountNameApi004",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "POST",
-                      "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Storage/checkNameAvailability?api-version=2021-04-01')]",
-                      "body": {
-                        "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, steps('basics').mainframeLandingZoneName.environment, 'ext001')]",
-                        "type": "Microsoft.Storage/storageAccounts"
-                      }
-                    }
-                  },
-                  {
-                    "name": "storageAccountNameApi005",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "POST",
-                      "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Storage/checkNameAvailability?api-version=2021-04-01')]",
-                      "body": {
-                        "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, steps('basics').mainframeLandingZoneName.environment, 'artfct001')]",
-                        "type": "Microsoft.Storage/storageAccounts"
-                      }
-                    }
-                  },
-                  {
-                    "name": "sqlServerNameApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "POST",
-                      "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Sql/checkNameAvailability?api-version=2021-02-01-preview')]",
-                      "body": {
-                        "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, '-', steps('basics').mainframeLandingZoneName.environment, '-sqlserver001')]",
-                        "type": "Microsoft.Sql/servers"
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "name": "generalSettings",
-            "label": "General Settings",
-            "subLabel": {
-              "preValidation": "Provide settings for your Azure Mainframe Landing Zone deployment.",
-              "postValidation": "Done"
-            },
-            "bladeTitle": "General Settings",
-            "bladeSubtitle": "General Settings",
-            "elements": [
-              {
-                "name": "servicesSettings",
-                "label": "Services Settings",
-                "type": "Microsoft.Common.Section",
-                "visible": true,
-                "elements": [
-                  {
-                    "name": "administratorPasswordText",
-                    "type": "Microsoft.Common.TextBlock",
-                    "visible": true,
-                    "options": {
-                      "text": "Select an administrator password for the Synapse workspaces, SQL Servers and potentially Self-hosted integration runtimes hosted on VMSS.",
-                      "link": {
-                        "label": "",
-                        "uri": ""
-                      }
-                    }
-                  },
-                  {
-                    "name": "administratorPassword",
-                    "label": {
-                      "password": "Password",
-                      "confirmPassword": "Confirm password"
-                    },
-                    "type": "Microsoft.Common.PasswordBox",
-                    "visible": true,
-                    "toolTip": "Specify an administrator password for the Synapse workspaces and Self-hosted integration runtimes hosted on VMSS.",
-                    "constraints": {
-                      "required": true,
-                      "regex": "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,128}$",
-                      "validationMessage": "The password must be alphanumeric, contain at least 8 characters, and have at least 1 letter, 1 number and one special character."
-                    },
-                    "options": {
-                      "hideConfirmation": false
-                    }
-                  }
-                ]
-              },
-              {
-                "name": "mainframeLandingZoneSubscriptions",
-                "label": "Other Mainframe Landing Zone Subscriptions. Keep it blank (for future features only)",
-                "type": "Microsoft.Common.Section",
-                "visible": true,
-                "elements": [
-                  {
-                    "name": "selfhostedIntegrationRuntimeText",
-                    "type": "Microsoft.Common.TextBlock",
-                    "visible": true,
-                    "options": {
-                      "text": "Specify the subscriptions that are used for your other Azure Mainframe Landing Zones.",
-                      "link": {
-                        "label": "",
-                        "uri": ""
-                      }
-                    }
-                  },
-                  {
-                    "name": "subscriptionApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "GET",
-                      "path": "subscriptions?api-version=2020-01-01"
-                    }
-                  },
-                  {
-                    "name": "mainframeLandingZoneSubscriptionIds",
-                    "ariaLabel": "Enter information per Azure Mainframe Landing Zone",
-                    "label": "Azure Mainframe Landing Zone Subscriptions",
-                    "type": "Microsoft.Common.EditableGrid",
-                    "visible": true,
-                    "constraints": {
-                      "width": "Full",
-                      "rows": {
-                        "count": {
-                          "min": 0,
-                          "max": 50
-                        }
-                      },
-                      "columns": [
-                        {
-                          "id": "subscription",
-                          "header": "Subscription",
-                          "width": "1fr",
-                          "element": {
-                            "name": "subscription",
-                            "type": "Microsoft.Common.DropDown",
-                            "placeholder": "Select a subscription...",
-                            "multiselect": false,
-                            "selectAll": false,
-                            "filter": true,
-                            "filterPlaceholder": "Filter items ...",
-                            "multiLine": true,
-                            "constraints": {
-                              "allowedValues": "[map(steps('generalSettings').mainframeLandingZoneSubscriptions.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.subscriptionId, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
-                              "required": true
+                            "name": "infoBoxAzureMainframeLandingZone",
+                            "type": "Microsoft.Common.InfoBox",
+                            "visible": true,
+                            "options": {
+                                "text": "Azure Mainframe Landing Zone is a prescriptive reference architecture for legacy workload migration/modernization with reference implementation provided by Microsoft and Partners. Visit '' for more details about the solution pattern.",
+                                "style": "Info",
+                                "uri": ""
                             }
-                          }
+                        },
+                        {
+                            "name": "deploymentDetails",
+                            "label": "Deployment Details",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "deploymentDetailsText",
+                                    "type": "Microsoft.Common.TextBlock",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "Select the subscription as well as the location to specify the scope of your Azure Mainframe Landing Zone deployment.",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "subscriptions?api-version=2020-01-01"
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionId",
+                                    "label": "Subscription",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "",
+                                    "toolTip": "Select the Subscription for your Azure Mainframe Landing Zone.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('basics').deploymentDetails.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "infoBoxLocation",
+                                    "type": "Microsoft.Common.InfoBox",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "Since not all service features are available in all regions, this deployment is available in a subset of regions.",
+                                        "style": "Info"
+                                    }
+                                },
+                                {
+                                    "name": "locationsApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "locations?api-version=2019-11-01"
+                                    }
+                                },
+                                {
+                                    "name": "locationName",
+                                    "label": "Location",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "",
+                                    "toolTip": "Select the Location for your Azure Mainframe Landing Zone.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(filter(steps('basics').deploymentDetails.locationsApi.value,(item) => contains(split('southafricanorth,australiaeast,centralindia,japaneast,southeastasia,southindia,canadacentral,francecentral,germanywestcentral,northeurope,uksouth,westeurope,brazilsouth,centralus,eastus,eastus2,southcentralus,westcentralus,westus2', ','), item.name)),(item) => parse(concat('{\"label\":\"', item.regionalDisplayName, '\",\"value\":\"', item.name, '\"}')))]",
+                                        "required": true
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "mainframeLandingZoneName",
+                            "label": "Mainframe Landing Zone Name",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "mainframeLandingZoneNameText",
+                                    "type": "Microsoft.Common.TextBlock",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "Specify a prefix and select an environment (Development, Test, Production) which will both be used as a prefix for all resource names. Independent of the environment, the same resources get deployed.",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "environment",
+                                    "label": "Environment",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "Development",
+                                    "toolTip": "Select the environment for the deployment.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": [
+                                            {
+                                                "label": "Development",
+                                                "description": "Select if you want to deploy a development environment.",
+                                                "value": "dev"
+                                            },
+                                            {
+                                                "label": "Test",
+                                                "description": "Select if you want to deploy a test environment.",
+                                                "value": "tst"
+                                            },
+                                            {
+                                                "label": "Production",
+                                                "description": "Select if you want to deploy a production environment.",
+                                                "value": "prd"
+                                            }
+                                        ],
+                                        "required": true
+                                    }
+                                },
+
+                                {
+                                    "name": "partner",
+                                    "label": "Partner",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "generic",
+                                    "toolTip": "Select the partner solution or leave generic for the deployment.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": [
+                                            {
+                                                "label": "Generic",
+                                                "description": "Select if you want to use Generic template for deployment.",
+                                                "value": "generic"
+                                            },
+                                            {
+                                                "label": "Raincode",
+                                                "description": "Select if you want to use Raincode template for deployment.",
+                                                "value": "raincode"
+                                            },
+                                            {
+                                                "label": "TmaxSoft",
+                                                "description": "Select if you want to use TmaxSoft template for deployment.",
+                                                "value": "tmaxsoft"
+                                            },
+                                            {
+                                                "label": "OpenTxt",
+                                                "description": "Select if you want to use OpenTxt template for deployment.",
+                                                "value": "opentxt"
+                                            },                                            
+                                            {
+                                                "label": "NTTData",
+                                                "description": "Select if you want to use NTTData template for deployment.",
+                                                "value": "nttdata"
+                                            }                                        ],
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "mainframeLandingZonePrefix",
+                                    "label": "Main Frame Landing Zone Prefix",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": true,
+                                    "defaultValue": "",
+                                    "toolTip": "Specify a prefix (min 1 and max 10 lowercase characters and numbers).",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^[a-z0-9]{1,10}$",
+                                                "message": "The prefix must be between 1-10 lowercase characters and numbers."
+                                            },
+                                            {
+                                                "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.keyVaultNameApi001.nameAvailable, false))]",
+                                                "message": "Prefix currently unavailable. Please choose a different one."
+                                            },
+                                            {
+                                                "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.keyVaultNameApi002.nameAvailable, false))]",
+                                                "message": "Prefix currently unavailable. Please choose a different one."
+                                            },
+                                            {
+                                                "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.keyVaultNameApi003.nameAvailable, false))]",
+                                                "message": "Prefix currently unavailable. Please choose a different one."
+                                            },
+                                            {
+                                                "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.storageAccountNameApi001.nameAvailable, false))]",
+                                                "message": "Prefix currently unavailable. Please choose a different one."
+                                            },
+                                            {
+                                                "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.storageAccountNameApi002.nameAvailable, false))]",
+                                                "message": "Prefix currently unavailable. Please choose a different one."
+                                            },
+                                            {
+                                                "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.storageAccountNameApi003.nameAvailable, false))]",
+                                                "message": "Prefix currently unavailable. Please choose a different one."
+                                            },
+                                            {
+                                                "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.storageAccountNameApi004.nameAvailable, false))]",
+                                                "message": "Prefix currently unavailable. Please choose a different one."
+                                            },
+                                            {
+                                                "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.storageAccountNameApi005.nameAvailable, false))]",
+                                                "message": "Prefix currently unavailable. Please choose a different one."
+                                            },
+                                            {
+                                                "isValid": "[not(equals(steps('basics').mainframeLandingZoneName.sqlServerNameApi.available, false))]",
+                                                "message": "Prefix currently unavailable. Please choose a different one."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "keyVaultNameApi001",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "POST",
+                                        "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.KeyVault/checkNameAvailability?api-version=2019-09-01')]",
+                                        "body": {
+                                            "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, '-', steps('basics').mainframeLandingZoneName.environment, '-vault001')]",
+                                            "type": "Microsoft.KeyVault/vaults"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "keyVaultNameApi002",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "POST",
+                                        "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.KeyVault/checkNameAvailability?api-version=2019-09-01')]",
+                                        "body": {
+                                            "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, '-', steps('basics').mainframeLandingZoneName.environment, '-vault002')]",
+                                            "type": "Microsoft.KeyVault/vaults"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "keyVaultNameApi003",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "POST",
+                                        "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.KeyVault/checkNameAvailability?api-version=2019-09-01')]",
+                                        "body": {
+                                            "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, '-', steps('basics').mainframeLandingZoneName.environment, '-vault003')]",
+                                            "type": "Microsoft.KeyVault/vaults"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "storageAccountNameApi001",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "POST",
+                                        "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Storage/checkNameAvailability?api-version=2021-04-01')]",
+                                        "body": {
+                                            "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, steps('basics').mainframeLandingZoneName.environment, 'raw')]",
+                                            "type": "Microsoft.Storage/storageAccounts"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "storageAccountNameApi002",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "POST",
+                                        "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Storage/checkNameAvailability?api-version=2021-04-01')]",
+                                        "body": {
+                                            "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, steps('basics').mainframeLandingZoneName.environment, 'encur')]",
+                                            "type": "Microsoft.Storage/storageAccounts"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "storageAccountNameApi003",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "POST",
+                                        "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Storage/checkNameAvailability?api-version=2021-04-01')]",
+                                        "body": {
+                                            "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, steps('basics').mainframeLandingZoneName.environment, 'work')]",
+                                            "type": "Microsoft.Storage/storageAccounts"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "storageAccountNameApi004",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "POST",
+                                        "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Storage/checkNameAvailability?api-version=2021-04-01')]",
+                                        "body": {
+                                            "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, steps('basics').mainframeLandingZoneName.environment, 'ext001')]",
+                                            "type": "Microsoft.Storage/storageAccounts"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "storageAccountNameApi005",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "POST",
+                                        "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Storage/checkNameAvailability?api-version=2021-04-01')]",
+                                        "body": {
+                                            "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, steps('basics').mainframeLandingZoneName.environment, 'artfct001')]",
+                                            "type": "Microsoft.Storage/storageAccounts"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "sqlServerNameApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "POST",
+                                        "path": "[concat(steps('basics').deploymentDetails.subscriptionId, '/providers/Microsoft.Sql/checkNameAvailability?api-version=2021-02-01-preview')]",
+                                        "body": {
+                                            "name": "[concat(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix, '-', steps('basics').mainframeLandingZoneName.environment, '-sqlserver001')]",
+                                            "type": "Microsoft.Sql/servers"
+                                        }
+                                    }
+                                }
+                            ]
                         }
-                      ]
-                    }
-                  }
-                ]
-              }
+                    ]
+                },
+                {
+                    "name": "generalSettings",
+                    "label": "General Settings",
+                    "subLabel": {
+                        "preValidation": "Provide settings for your Azure Mainframe Landing Zone deployment.",
+                        "postValidation": "Done"
+                    },
+                    "bladeTitle": "General Settings",
+                    "bladeSubtitle": "General Settings",
+                    "elements": [
+                        {
+                            "name": "servicesSettings",
+                            "label": "Services Settings",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "administratorUsername",
+                                    "type": "Microsoft.Common.TextBlock",
+                                    "visible": true,
+                                    "constraints": {
+                                        "required": true
+                                    },
+                                    "options": {
+                                        "text": "Select an administrator username for VM login and database services ",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "administratorPasswordText",
+                                    "type": "Microsoft.Common.TextBlock",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "Select an administrator password for database services ",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "administratorPassword",
+                                    "label": {
+                                        "password": "Password",
+                                        "confirmPassword": "Confirm password"
+                                    },
+                                    "type": "Microsoft.Common.PasswordBox",
+                                    "visible": true,
+                                    "toolTip": "Specify an administrator password for the Synapse workspaces and Self-hosted integration runtimes hosted on VMSS.",
+                                    "constraints": {
+                                        "required": true,
+                                        "regex": "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,128}$",
+                                        "validationMessage": "The password must be alphanumeric, contain at least 8 characters, and have at least 1 letter, 1 number and one special character."
+                                    },
+                                    "options": {
+                                        "hideConfirmation": false
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "mainframeLandingZoneSubscriptions",
+                            "label": "Other Mainframe Landing Zone Subscriptions. Select your current subscription. (for future features only)",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "selfhostedIntegrationRuntimeText",
+                                    "type": "Microsoft.Common.TextBlock",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "Specify the subscriptions that are used for your other Azure Mainframe Landing Zones. Please select your current subscription",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "subscriptions?api-version=2020-01-01"
+                                    }
+                                },
+                                {
+                                    "name": "mainframeLandingZoneSubscriptionIds",
+                                    "ariaLabel": "Enter information per Azure Mainframe Landing Zone",
+                                    "label": "Azure Mainframe Landing Zone Subscriptions",
+                                    "type": "Microsoft.Common.EditableGrid",
+                                    "visible": true,
+                                    "constraints": {
+                                        "width": "Full",
+                                        "rows": {
+                                            "count": {
+                                                "min": 0,
+                                                "max": 50
+                                            }
+                                        },
+                                        "columns": [
+                                            {
+                                                "id": "subscription",
+                                                "header": "Subscription",
+                                                "width": "1fr",
+                                                "element": {
+                                                    "name": "subscription",
+                                                    "type": "Microsoft.Common.DropDown",
+                                                    "placeholder": "Select a subscription...",
+                                                    "multiselect": false,
+                                                    "selectAll": false,
+                                                    "filter": true,
+                                                    "filterPlaceholder": "Filter items ...",
+                                                    "multiLine": true,
+                                                    "constraints": {
+                                                        "allowedValues": "[map(steps('generalSettings').mainframeLandingZoneSubscriptions.subscriptionApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.subscriptionId, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                                        "required": true
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "connectivitySettings",
+                    "label": "Connectivity Settings",
+                    "subLabel": {
+                        "preValidation": "Provide all connectivity settings for your Azure Mainframe Landing Zone.",
+                        "postValidation": "Done"
+                    },
+                    "bladeTitle": "Connectivity Settings",
+                    "bladeSubtitle": "Connectivity Settings",
+                    "elements": [
+                        {
+                            "name": "virtualNetworkConfiguration",
+                            "label": "Virtual Network Configuration",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "virtualNetworkConfigurationText",
+                                    "type": "Microsoft.Common.TextBlock",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "Specify the Virtual network and subnet CIDR range for your Azure Mainframe Landing Zone. Please make sure that the address space is not overlapping with the address space of other Landing Zones.",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "virtualNetworkAddressCidrRange",
+                                    "label": "Vnet Address CIDR Range",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": true,
+                                    "defaultValue": "10.1.0.0/16",
+                                    "toolTip": "Specify a Vnet address CIDR range within the range [10,24].",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:\/(1[0-9]|2[0-4]))$",
+                                                "message": "Invalid CIDR range. The address prefix must be in the range [10,24]."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "appServicesSubnetAddressPrefix",
+                                    "label": "App Services Subnet CIDR Range",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": true,
+                                    "defaultValue": "10.1.0.0/24",
+                                    "toolTip": "Specify a CIDR range for the App Services Subnet within the range [24,28].",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:\/(2[4-8]))$",
+                                                "message": "Invalid CIDR range. The address prefix must be in the range [24,28]."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 8), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 1)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix, '/')), '.'), 1))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (first octet)."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 16), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 2)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix, '/')), '.'), 2))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (second octet)."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 24), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 3)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix, '/')), '.'), 3))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (third octet)."
+                                            },
+                                            {
+                                                "isValid": "[lessOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), last(split(steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix, '/')))]",
+                                                "message": "CIDR range not within virtual network CIDR range (subnet mask)."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "dataServicesSubnetAddressPrefix",
+                                    "label": "Private Data Services Subnet CIDR Range",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": true,
+                                    "defaultValue": "10.1.2.0/24",
+                                    "toolTip": "Specify a CIDR range for the private Subnet of the data services within the range [24,28].",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:\/(2[4-8]))$",
+                                                "message": "Invalid CIDR range. The address prefix must be in the range [24,28]."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 8), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 1)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix, '/')), '.'), 1))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (first octet)."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 16), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 2)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix, '/')), '.'), 2))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (second octet)."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 24), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 3)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix, '/')), '.'), 3))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (third octet)."
+                                            },
+                                            {
+                                                "isValid": "[lessOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), last(split(steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix, '/')))]",
+                                                "message": "CIDR range not within virtual network CIDR range (subnet mask)."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "dataIntegrationSubnetAddressPrefix",
+                                    "label": "Private Data Integration Services Subnet CIDR Range",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": true,
+                                    "defaultValue": "10.1.3.0/24",
+                                    "toolTip": "Specify a CIDR range for the private Subnet of the data integration services within the range [24,28].",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:\/(2[4-8]))$",
+                                                "message": "Invalid CIDR range. The address prefix must be in the range [24,28]."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 8), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 1)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix, '/')), '.'), 1))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (first octet)."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 16), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 2)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix, '/')), '.'), 2))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (second octet)."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 24), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 3)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix, '/')), '.'), 3))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (third octet)."
+                                            },
+                                            {
+                                                "isValid": "[lessOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), last(split(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix, '/')))]",
+                                                "message": "CIDR range not within virtual network CIDR range (subnet mask)."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "externalStorageSubnetAddressPrefix",
+                                    "label": "Private External Storage Subnet CIDR Range",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": true,
+                                    "defaultValue": "10.1.4.0/24",
+                                    "toolTip": "Specify a CIDR range for the private Subnet of the shared Databricks Product Workspace within the range [24,28].",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:\/(2[4-8]))$",
+                                                "message": "Invalid CIDR range. The address prefix must be in the range [24,28]."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 8), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 1)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix, '/')), '.'), 1))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (first octet)."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 16), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 2)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix, '/')), '.'), 2))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (second octet)."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 24), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 3)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix, '/')), '.'), 3))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (third octet)."
+                                            },
+                                            {
+                                                "isValid": "[lessOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), last(split(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix, '/')))]",
+                                                "message": "CIDR range not within virtual network CIDR range (subnet mask)."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "loggingServicesSubnetAddressPrefix",
+                                    "label": "Logging services Subnet CIDR Range",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": true,
+                                    "defaultValue": "10.1.5.0/24",
+                                    "toolTip": "Specify a CIDR range for the Power BI Gateway Subnet within the range [24,28].",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:\/(2[4-8]))$",
+                                                "message": "Invalid CIDR range. The address prefix must be in the range [24,28]."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 8), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 1)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix, '/')), '.'), 1))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (first octet)."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 16), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 2)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix, '/')), '.'), 2))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (second octet)."
+                                            },
+                                            {
+                                                "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 24), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 3)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix, '/')), '.'), 3))), true)]",
+                                                "message": "CIDR range not within virtual network CIDR range (third octet)."
+                                            },
+                                            {
+                                                "isValid": "[lessOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), last(split(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix, '/')))]",
+                                                "message": "CIDR range not within virtual network CIDR range (subnet mask)."
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "hubVnetConfiguration",
+                            "label": "Hub Virtual Network Configuration",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "infoBoxHubVnet",
+                                    "type": "Microsoft.Common.InfoBox",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "Please select the Vnet of your Hub to peer it with your Azure Mainframe Landing Zone.",
+                                        "style": "Info"
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionHubApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "subscriptions?api-version=2020-01-01"
+                                    }
+                                },
+                                {
+                                    "name": "hubSub",
+                                    "label": "Core Landing Zone Hub Subscription",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "",
+                                    "toolTip": "Select the Subscription of your hub.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('connectivitySettings').hubVnetConfiguration.subscriptionHubApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "virtualNetworkHubApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "[concat(steps('connectivitySettings').hubVnetConfiguration.hubSub, '/providers/Microsoft.Network/virtualNetworks?api-version=2020-11-01')]"
+                                    }
+                                },
+                                {
+                                    "name": "hubVirtualNetwork",
+                                    "label": "Hub Virtual Network",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "",
+                                    "toolTip": "Select the Virtual Network of your Hub.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('connectivitySettings').hubVnetConfiguration.virtualNetworkHubApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Subscription ID: ', last(take(split(item.id, '/'), 3)), '\"}')))]",
+                                        "required": true
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "sharedNetworkInfrastructureConfiguration",
+                            "label": "Shared Network Infrastructure Configuration",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "sharedNetworkInfrastructureText",
+                                    "type": "Microsoft.Common.TextBlock",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "Specify the details of your shared network infrastructure in order to correctly setup the network configuration (Vnet and RouteTables).",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "existingFirewallType",
+                                    "label": "Existing Firewall",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "defaultValue": "Azure Firewall",
+                                    "toolTip": "Select the Firewall that is used inside your environment.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": false,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": [
+                                            {
+                                                "label": "Azure Firewall",
+                                                "value": "azureFirewall"
+                                            },
+                                            {
+                                                "label": "Third Party Appliance",
+                                                "value": "custom"
+                                            }
+                                        ],
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionFirewallApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "subscriptions?api-version=2020-01-01"
+                                    }
+                                },
+                                {
+                                    "name": "azureFirewallSub",
+                                    "label": "Azure Firewall Subscription",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": "[equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall')]",
+                                    "defaultValue": "",
+                                    "toolTip": "Select the Subscription of your Azure Firewall.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.subscriptionFirewallApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "azureFirewallApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "[concat(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallSub, '/providers/Microsoft.Network/azureFirewalls?api-version=2020-11-01')]"
+                                    }
+                                },
+                                {
+                                    "name": "azureFirewallId",
+                                    "label": "Azure Firewall",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": "[equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall')]",
+                                    "defaultValue": "",
+                                    "toolTip": "Select the central Azure Firewall that should be used.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Subscription ID: ', last(take(split(item.id, '/'), 3)), '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "azureFirewallPrivateIpApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "[concat(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallId, '?api-version=2020-11-01')]"
+                                    }
+                                },
+                                {
+                                    "name": "firewallPrivateIp",
+                                    "label": "Firewall Private IP Address",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": "[equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'custom')]",
+                                    "defaultValue": "10.0.0.4",
+                                    "toolTip": "Specify the private IP address of your Firewall.",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$",
+                                                "message": "Invalid IP address. Please specify a single valid IP adress (e.g. '10.0.0.4')."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "dnsServerAdresses",
+                                    "label": "DNS Server Addresses",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": "[equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'custom')]",
+                                    "defaultValue": "10.0.0.4",
+                                    "toolTip": "Specify the private IP addresses of your DNS forwarders. You can specify more than one private IP address ('10.0.0.4,10.0.0.5').",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(,)?)*$",
+                                                "message": "Invalid IP addresses. Please specify one or more valid IP adresses (e.g. '10.0.0.4' or '10.0.0.4,10.0.0.5')."
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "privateDnsZones",
+                            "label": "Private DNS Zones",
+                            "type": "Microsoft.Common.Section",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "privateDnsZonesText",
+                                    "type": "Microsoft.Common.TextBlock",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "Select the Private DNS Zone settings for your deployment.",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "infoBoxPrivateDnsZone",
+                                    "type": "Microsoft.Common.InfoBox",
+                                    "visible": true,
+                                    "options": {
+                                        "text": "We are deploying all services with private endpoints and disabled public network access to reduce the data exfiltration risk. For each private endpoint, DNS A-records need to be created in a Private DNS Zones. Therefore, these either need to deployed through Azure Policies or you have to provide the Private DNS Zones that should be used for this deployment. We are assuming that all Private DNS Zones are created in the same subscription. Deploying DNS A-Records through Private Endpoints is the recommended solution.",
+                                        "style": "Info",
+                                        "uri": "https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/private-link-and-dns-integration-at-scale"
+                                    }
+                                },
+                                {
+                                    "name": "automatedPrivateDnsZoneGroups",
+                                    "label": "DNS A-Records are deployed through Azure Policy",
+                                    "type": "Microsoft.Common.OptionsGroup",
+                                    "visible": true,
+                                    "toolTip": "If 'Yes' is selected, Private DNS Zone Groups will not be deployed and we are assuming that this gets created through Azure Policies. If this does not get created, you will not be able to access any resources within this environment.",
+                                    "defaultValue": "No",
+                                    "constraints": {
+                                        "allowedValues": [
+                                            {
+                                                "label": "No",
+                                                "value": "no"
+                                            },
+                                            {
+                                                "label": "Yes",
+                                                "value": "yes"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "subscriptionPrivateDnsZonesApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "subscriptions?api-version=2020-01-01"
+                                    }
+                                },
+                                {
+                                    "name": "privateDnsZonesSub",
+                                    "label": "Subscription with Private DNS Zones",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
+                                    "defaultValue": "",
+                                    "toolTip": "Select the Subscription of your Private DNS Zones. If you have deployed the Core Landing Zone with a Firewall and Private DNS Zones then select the subscription that you have used for your Hub.",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('connectivitySettings').privateDnsZones.subscriptionPrivateDnsZonesApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "privateDnsZonesApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "[concat(steps('connectivitySettings').privateDnsZones.privateDnsZonesSub, '/providers/Microsoft.Network/privateDnsZones?api-version=2018-09-01')]"
+                                    }
+                                },
+                                {
+                                    "name": "privateDnsZoneIdKeyVault",
+                                    "label": "Private DNS Zone Key Vault (privatelink.vaultcore.azure.net)",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
+                                    "defaultValue": "",
+                                    "toolTip": "Private DNS Zone for Key Vault (privatelink.vaultcore.azure.net).",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(filter(steps('connectivitySettings').privateDnsZones.privateDnsZonesApi.value,(item) => contains(item.name, 'privatelink.vaultcore.azure.net')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "privateDnsZoneIdDataFactory",
+                                    "label": "Private DNS Zone DataFactory (privatelink.datafactory.azure.net)",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
+                                    "defaultValue": "",
+                                    "toolTip": "Private DNS Zone for DataFactory (privatelink.datafactory.azure.net).",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(filter(steps('connectivitySettings').privateDnsZones.privateDnsZonesApi.value,(item) => contains(item.name, 'privatelink.datafactory.azure.net')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "privateDnsZoneIdDataFactoryPortal",
+                                    "label": "Private DNS Zone DataFactory Portal (privatelink.adf.azure.com)",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
+                                    "defaultValue": "",
+                                    "toolTip": "Private DNS Zone for DataFactory Portal (privatelink.adf.azure.com).",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(filter(steps('connectivitySettings').privateDnsZones.privateDnsZonesApi.value,(item) => contains(item.name, 'privatelink.adf.azure.com')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "privateDnsZoneIdBlob",
+                                    "label": "Private DNS Zone Blob Storage (privatelink.blob.core.windows.net)",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
+                                    "defaultValue": "",
+                                    "toolTip": "Private DNS Zone for Blob Storage (privatelink.blob.core.windows.net).",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(filter(steps('connectivitySettings').privateDnsZones.privateDnsZonesApi.value,(item) => contains(item.name, 'privatelink.blob.core.windows.net')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
+                                        "required": true
+                                    }
+                                },
+                                {
+                                    "name": "privateDnsZoneIdSqlServer",
+                                    "label": "Private DNS Zone SQL Server (privatelink.database.windows.net)",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
+                                    "defaultValue": "",
+                                    "toolTip": "Private DNS Zone for SQL Server (privatelink.database.windows.net).",
+                                    "multiselect": false,
+                                    "selectAll": false,
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter items ...",
+                                    "multiLine": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(filter(steps('connectivitySettings').privateDnsZones.privateDnsZonesApi.value,(item) => contains(item.name, 'privatelink.database.windows.net')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
+                                        "required": true
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "tags",
+                    "label": "Tags",
+                    "subLabel": {
+                        "preValidation": "Provide tags that will be used for all resources.",
+                        "postValidation": "Done"
+                    },
+                    "bladeTitle": "Tags",
+                    "bladeSubtitle": "Tags",
+                    "elements": [
+                        {
+                            "name": "tagsByResource",
+                            "label": "Tags by Resource",
+                            "type": "Microsoft.Common.TagsByResource",
+                            "visible": true,
+                            "resources": [
+                                "Azure Mainframe Landing Zone"
+                            ]
+                        }
+                    ]
+                }
             ]
-          },
-          {
-            "name": "connectivitySettings",
-            "label": "Connectivity Settings",
-            "subLabel": {
-              "preValidation": "Provide all connectivity settings for your Azure Mainframe Landing Zone.",
-              "postValidation": "Done"
-            },
-            "bladeTitle": "Connectivity Settings",
-            "bladeSubtitle": "Connectivity Settings",
-            "elements": [
-              {
-                "name": "virtualNetworkConfiguration",
-                "label": "Virtual Network Configuration",
-                "type": "Microsoft.Common.Section",
-                "visible": true,
-                "elements": [
-                  {
-                    "name": "virtualNetworkConfigurationText",
-                    "type": "Microsoft.Common.TextBlock",
-                    "visible": true,
-                    "options": {
-                      "text": "Specify the Virtual network and subnet CIDR range for your Azure Mainframe Landing Zone. Please make sure that the address space is not overlapping with the address space of other Landing Zones.",
-                      "link": {
-                        "label": "",
-                        "uri": ""
-                      }
-                    }
-                  },
-                  {
-                    "name": "virtualNetworkAddressCidrRange",
-                    "label": "Vnet Address CIDR Range",
-                    "type": "Microsoft.Common.TextBox",
-                    "visible": true,
-                    "defaultValue": "10.1.0.0/16",
-                    "toolTip": "Specify a Vnet address CIDR range within the range [10,24].",
-                    "constraints": {
-                      "required": true,
-                      "validations": [
-                        {
-                          "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:/(1[0-9]|2[0-4]))$",
-                          "message": "Invalid CIDR range. The address prefix must be in the range [10,24]."
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "name": "appServicesSubnetAddressPrefix",
-                    "label": "App Services Subnet CIDR Range",
-                    "type": "Microsoft.Common.TextBox",
-                    "visible": true,
-                    "defaultValue": "10.1.0.0/24",
-                    "toolTip": "Specify a CIDR range for the App Services Subnet within the range [24,28].",
-                    "constraints": {
-                      "required": true,
-                      "validations": [
-                        {
-                          "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:/(2[4-8]))$",
-                          "message": "Invalid CIDR range. The address prefix must be in the range [24,28]."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 8), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 1)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix, '/')), '.'), 1))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (first octet)."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 16), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 2)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix, '/')), '.'), 2))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (second octet)."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 24), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 3)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix, '/')), '.'), 3))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (third octet)."
-                        },
-                        {
-                          "isValid": "[lessOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), last(split(steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix, '/')))]",
-                          "message": "CIDR range not within virtual network CIDR range (subnet mask)."
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "name": "dataServicesSubnetAddressPrefix",
-                    "label": "Private Data Services Subnet CIDR Range",
-                    "type": "Microsoft.Common.TextBox",
-                    "visible": true,
-                    "defaultValue": "10.1.2.0/24",
-                    "toolTip": "Specify a CIDR range for the private Subnet of the data services within the range [24,28].",
-                    "constraints": {
-                      "required": true,
-                      "validations": [
-                        {
-                          "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:/(2[4-8]))$",
-                          "message": "Invalid CIDR range. The address prefix must be in the range [24,28]."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 8), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 1)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix, '/')), '.'), 1))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (first octet)."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 16), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 2)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix, '/')), '.'), 2))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (second octet)."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 24), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 3)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix, '/')), '.'), 3))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (third octet)."
-                        },
-                        {
-                          "isValid": "[lessOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), last(split(steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix, '/')))]",
-                          "message": "CIDR range not within virtual network CIDR range (subnet mask)."
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "name": "dataIntegrationSubnetAddressPrefix",
-                    "label": "Private Data Integration Services Subnet CIDR Range",
-                    "type": "Microsoft.Common.TextBox",
-                    "visible": true,
-                    "defaultValue": "10.1.3.0/24",
-                    "toolTip": "Specify a CIDR range for the private Subnet of the data integration services within the range [24,28].",
-                    "constraints": {
-                      "required": true,
-                      "validations": [
-                        {
-                          "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:/(2[4-8]))$",
-                          "message": "Invalid CIDR range. The address prefix must be in the range [24,28]."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 8), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 1)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix, '/')), '.'), 1))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (first octet)."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 16), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 2)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix, '/')), '.'), 2))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (second octet)."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 24), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 3)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix, '/')), '.'), 3))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (third octet)."
-                        },
-                        {
-                          "isValid": "[lessOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), last(split(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix, '/')))]",
-                          "message": "CIDR range not within virtual network CIDR range (subnet mask)."
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "name": "externalStorageSubnetAddressPrefix",
-                    "label": "Private External Storage Subnet CIDR Range",
-                    "type": "Microsoft.Common.TextBox",
-                    "visible": true,
-                    "defaultValue": "10.1.4.0/24",
-                    "toolTip": "Specify a CIDR range for the private Subnet of the shared Databricks Product Workspace within the range [24,28].",
-                    "constraints": {
-                      "required": true,
-                      "validations": [
-                        {
-                          "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:/(2[4-8]))$",
-                          "message": "Invalid CIDR range. The address prefix must be in the range [24,28]."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 8), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 1)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix, '/')), '.'), 1))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (first octet)."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 16), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 2)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix, '/')), '.'), 2))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (second octet)."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 24), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 3)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix, '/')), '.'), 3))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (third octet)."
-                        },
-                        {
-                          "isValid": "[lessOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), last(split(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix, '/')))]",
-                          "message": "CIDR range not within virtual network CIDR range (subnet mask)."
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "name": "loggingServicesSubnetAddressPrefix",
-                    "label": "Logging services Subnet CIDR Range",
-                    "type": "Microsoft.Common.TextBox",
-                    "visible": true,
-                    "defaultValue": "10.1.5.0/24",
-                    "toolTip": "Specify a CIDR range for the Power BI Gateway Subnet within the range [24,28].",
-                    "constraints": {
-                      "required": true,
-                      "validations": [
-                        {
-                          "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(?:/(2[4-8]))$",
-                          "message": "Invalid CIDR range. The address prefix must be in the range [24,28]."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 8), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 1)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix, '/')), '.'), 1))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (first octet)."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 16), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 2)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix, '/')), '.'), 2))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (second octet)."
-                        },
-                        {
-                          "isValid": "[if(greaterOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), 24), equals(last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), '.'), 3)), last(take(split(first(split(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix, '/')), '.'), 3))), true)]",
-                          "message": "CIDR range not within virtual network CIDR range (third octet)."
-                        },
-                        {
-                          "isValid": "[lessOrEquals(last(split(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange, '/')), last(split(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix, '/')))]",
-                          "message": "CIDR range not within virtual network CIDR range (subnet mask)."
-                        }
-                      ]
-                    }
-                  }
-                ]
-              },
-              {
-                "name": "hubVnetConfiguration",
-                "label": "Hub Virtual Network Configuration",
-                "type": "Microsoft.Common.Section",
-                "visible": true,
-                "elements": [
-                  {
-                    "name": "infoBoxHubVnet",
-                    "type": "Microsoft.Common.InfoBox",
-                    "visible": true,
-                    "options": {
-                      "text": "Please select the Vnet of your Hub to peer it with your Azure Mainframe Landing Zone.",
-                      "style": "Info"
-                    }
-                  },
-                  {
-                    "name": "subscriptionHubApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "GET",
-                      "path": "subscriptions?api-version=2020-01-01"
-                    }
-                  },
-                  {
-                    "name": "hubSub",
-                    "label": "Core Landing Zone Hub Subscription",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": true,
-                    "defaultValue": "",
-                    "toolTip": "Select the Subscription of your hub.",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(steps('connectivitySettings').hubVnetConfiguration.subscriptionHubApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "virtualNetworkHubApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "GET",
-                      "path": "[concat(steps('connectivitySettings').hubVnetConfiguration.hubSub, '/providers/Microsoft.Network/virtualNetworks?api-version=2020-11-01')]"
-                    }
-                  },
-                  {
-                    "name": "hubVirtualNetwork",
-                    "label": "Hub Virtual Network",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": true,
-                    "defaultValue": "",
-                    "toolTip": "Select the Virtual Network of your Hub.",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(steps('connectivitySettings').hubVnetConfiguration.virtualNetworkHubApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Subscription ID: ', last(take(split(item.id, '/'), 3)), '\"}')))]",
-                      "required": true
-                    }
-                  }
-                ]
-              },
-              {
-                "name": "sharedNetworkInfrastructureConfiguration",
-                "label": "Shared Network Infrastructure Configuration",
-                "type": "Microsoft.Common.Section",
-                "visible": true,
-                "elements": [
-                  {
-                    "name": "sharedNetworkInfrastructureText",
-                    "type": "Microsoft.Common.TextBlock",
-                    "visible": true,
-                    "options": {
-                      "text": "Specify the details of your shared network infrastructure in order to correctly setup the network configuration (Vnet and RouteTables).",
-                      "link": {
-                        "label": "",
-                        "uri": ""
-                      }
-                    }
-                  },
-                  {
-                    "name": "existingFirewallType",
-                    "label": "Existing Firewall",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": true,
-                    "defaultValue": "Azure Firewall",
-                    "toolTip": "Select the Firewall that is used inside your environment.",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": false,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": [
-                        {
-                          "label": "Azure Firewall",
-                          "value": "azureFirewall"
-                        },
-                        {
-                          "label": "Third Party Appliance",
-                          "value": "custom"
-                        }
-                      ],
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "subscriptionFirewallApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "GET",
-                      "path": "subscriptions?api-version=2020-01-01"
-                    }
-                  },
-                  {
-                    "name": "azureFirewallSub",
-                    "label": "Azure Firewall Subscription",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": "[equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall')]",
-                    "defaultValue": "",
-                    "toolTip": "Select the Subscription of your Azure Firewall.",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.subscriptionFirewallApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "azureFirewallApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "GET",
-                      "path": "[concat(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallSub, '/providers/Microsoft.Network/azureFirewalls?api-version=2020-11-01')]"
-                    }
-                  },
-                  {
-                    "name": "azureFirewallId",
-                    "label": "Azure Firewall",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": "[equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall')]",
-                    "defaultValue": "",
-                    "toolTip": "Select the central Azure Firewall that should be used.",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Subscription ID: ', last(take(split(item.id, '/'), 3)), '\"}')))]",
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "azureFirewallPrivateIpApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "GET",
-                      "path": "[concat(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallId, '?api-version=2020-11-01')]"
-                    }
-                  },
-                  {
-                    "name": "firewallPrivateIp",
-                    "label": "Firewall Private IP Address",
-                    "type": "Microsoft.Common.TextBox",
-                    "visible": "[equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'custom')]",
-                    "defaultValue": "10.0.0.4",
-                    "toolTip": "Specify the private IP address of your Firewall.",
-                    "constraints": {
-                      "required": true,
-                      "validations": [
-                        {
-                          "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$",
-                          "message": "Invalid IP address. Please specify a single valid IP adress (e.g. '10.0.0.4')."
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "name": "dnsServerAdresses",
-                    "label": "DNS Server Addresses",
-                    "type": "Microsoft.Common.TextBox",
-                    "visible": "[equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'custom')]",
-                    "defaultValue": "10.0.0.4",
-                    "toolTip": "Specify the private IP addresses of your DNS forwarders. You can specify more than one private IP address ('10.0.0.4,10.0.0.5').",
-                    "constraints": {
-                      "required": true,
-                      "validations": [
-                        {
-                          "regex": "^((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(,)?)*$",
-                          "message": "Invalid IP addresses. Please specify one or more valid IP adresses (e.g. '10.0.0.4' or '10.0.0.4,10.0.0.5')."
-                        }
-                      ]
-                    }
-                  }
-                ]
-              },
-              {
-                "name": "privateDnsZones",
-                "label": "Private DNS Zones",
-                "type": "Microsoft.Common.Section",
-                "visible": true,
-                "elements": [
-                  {
-                    "name": "privateDnsZonesText",
-                    "type": "Microsoft.Common.TextBlock",
-                    "visible": true,
-                    "options": {
-                      "text": "Select the Private DNS Zone settings for your deployment.",
-                      "link": {
-                        "label": "",
-                        "uri": ""
-                      }
-                    }
-                  },
-                  {
-                    "name": "infoBoxPrivateDnsZone",
-                    "type": "Microsoft.Common.InfoBox",
-                    "visible": true,
-                    "options": {
-                      "text": "We are deploying all services with private endpoints and disabled public network access to reduce the data exfiltration risk. For each private endpoint, DNS A-records need to be created in a Private DNS Zones. Therefore, these either need to deployed through Azure Policies or you have to provide the Private DNS Zones that should be used for this deployment. We are assuming that all Private DNS Zones are created in the same subscription. Deploying DNS A-Records through Private Endpoints is the recommended solution.",
-                      "style": "Info",
-                      "uri": "https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/private-link-and-dns-integration-at-scale"
-                    }
-                  },
-                  {
-                    "name": "automatedPrivateDnsZoneGroups",
-                    "label": "DNS A-Records are deployed through Azure Policy",
-                    "type": "Microsoft.Common.OptionsGroup",
-                    "visible": true,
-                    "toolTip": "If 'Yes' is selected, Private DNS Zone Groups will not be deployed and we are assuming that this gets created through Azure Policies. If this does not get created, you will not be able to access any resources within this environment.",
-                    "defaultValue": "No",
-                    "constraints": {
-                      "allowedValues": [
-                        {
-                          "label": "No",
-                          "value": "no"
-                        },
-                        {
-                          "label": "Yes",
-                          "value": "yes"
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "name": "subscriptionPrivateDnsZonesApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "GET",
-                      "path": "subscriptions?api-version=2020-01-01"
-                    }
-                  },
-                  {
-                    "name": "privateDnsZonesSub",
-                    "label": "Subscription with Private DNS Zones",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
-                    "defaultValue": "",
-                    "toolTip": "Select the Subscription of your Private DNS Zones. If you have deployed the Core Landing Zone with a Firewall and Private DNS Zones then select the subscription that you have used for your Hub.",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(steps('connectivitySettings').privateDnsZones.subscriptionPrivateDnsZonesApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\":\"', item.id, '\",\"description\":\"', 'ID: ', item.subscriptionId, '\"}')))]",
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "privateDnsZonesApi",
-                    "type": "Microsoft.Solutions.ArmApiControl",
-                    "request": {
-                      "method": "GET",
-                      "path": "[concat(steps('connectivitySettings').privateDnsZones.privateDnsZonesSub, '/providers/Microsoft.Network/privateDnsZones?api-version=2018-09-01')]"
-                    }
-                  },
-                  {
-                    "name": "privateDnsZoneIdKeyVault",
-                    "label": "Private DNS Zone Key Vault (privatelink.vaultcore.azure.net)",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
-                    "defaultValue": "",
-                    "toolTip": "Private DNS Zone for Key Vault (privatelink.vaultcore.azure.net).",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(filter(steps('connectivitySettings').privateDnsZones.privateDnsZonesApi.value,(item) => contains(item.name, 'privatelink.vaultcore.azure.net')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "privateDnsZoneIdDataFactory",
-                    "label": "Private DNS Zone DataFactory (privatelink.datafactory.azure.net)",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
-                    "defaultValue": "",
-                    "toolTip": "Private DNS Zone for DataFactory (privatelink.datafactory.azure.net).",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(filter(steps('connectivitySettings').privateDnsZones.privateDnsZonesApi.value,(item) => contains(item.name, 'privatelink.datafactory.azure.net')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "privateDnsZoneIdDataFactoryPortal",
-                    "label": "Private DNS Zone DataFactory Portal (privatelink.adf.azure.com)",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
-                    "defaultValue": "",
-                    "toolTip": "Private DNS Zone for DataFactory Portal (privatelink.adf.azure.com).",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(filter(steps('connectivitySettings').privateDnsZones.privateDnsZonesApi.value,(item) => contains(item.name, 'privatelink.adf.azure.com')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "privateDnsZoneIdBlob",
-                    "label": "Private DNS Zone Blob Storage (privatelink.blob.core.windows.net)",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
-                    "defaultValue": "",
-                    "toolTip": "Private DNS Zone for Blob Storage (privatelink.blob.core.windows.net).",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(filter(steps('connectivitySettings').privateDnsZones.privateDnsZonesApi.value,(item) => contains(item.name, 'privatelink.blob.core.windows.net')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
-                      "required": true
-                    }
-                  },
-                  {
-                    "name": "privateDnsZoneIdSqlServer",
-                    "label": "Private DNS Zone SQL Server (privatelink.database.windows.net)",
-                    "type": "Microsoft.Common.DropDown",
-                    "visible": "[equals(steps('connectivitySettings').privateDnsZones.automatedPrivateDnsZoneGroups, 'no')]",
-                    "defaultValue": "",
-                    "toolTip": "Private DNS Zone for SQL Server (privatelink.database.windows.net).",
-                    "multiselect": false,
-                    "selectAll": false,
-                    "filter": true,
-                    "filterPlaceholder": "Filter items ...",
-                    "multiLine": true,
-                    "constraints": {
-                      "allowedValues": "[map(filter(steps('connectivitySettings').privateDnsZones.privateDnsZonesApi.value,(item) => contains(item.name, 'privatelink.database.windows.net')),(item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\",\"description\":\"', 'Resource Group: ', last(take(split(item.id, '/'), 5)), '\"}')))]",
-                      "required": true
-                    }
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "name": "tags",
-            "label": "Tags",
-            "subLabel": {
-              "preValidation": "Provide tags that will be used for all resources.",
-              "postValidation": "Done"
-            },
-            "bladeTitle": "Tags",
-            "bladeSubtitle": "Tags",
-            "elements": [
-              {
-                "name": "tagsByResource",
-                "label": "Tags by Resource",
-                "type": "Microsoft.Common.TagsByResource",
-                "visible": true,
-                "resources": [
-                  "Azure Mainframe Landing Zone"
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      "outputs": {
-        "kind": "Subscription",
-        "location": "[steps('basics').deploymentDetails.locationName]",
-        "subscriptionId": "[steps('basics').deploymentDetails.subscriptionId]",
-        "parameters": {
-          "location": "[if(empty(steps('basics').deploymentDetails.locationName), '', steps('basics').deploymentDetails.locationName)]",
-          "environment": "[if(empty(steps('basics').mainframeLandingZoneName.environment), '', steps('basics').mainframeLandingZoneName.environment)]",
-          "prefix": "[if(empty(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix), '', steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix)]",
-          "tags": "[if(not(contains(steps('tags').tagsByResource, 'DataManagementAnalytics')), parse('{}'), first(map(parse(concat('[', string(steps('tags').tagsByResource), ']')), (item) => item.DataManagementAnalytics)))]",
-          "partner": "[if(empty(steps('basics').mainframeLandingZoneName.partner), '', steps('basics').mainframeLandingZoneName.partner)]",
-          "vnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange), '', steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange)]",
-          "appServicesSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix)]",
-          "dataServicesSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix)]",
-          "dataIntegrationSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix)]",
-          "externalStorageSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix)]",
-          "loggingServicesSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix)]",
-          "hubVnetId": "[if(empty(steps('connectivitySettings').hubVnetConfiguration.hubVirtualNetwork), '', steps('connectivitySettings').hubVnetConfiguration.hubVirtualNetwork)]",
-          "firewallPrivateIp": "[if(equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall'), first(map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallPrivateIpApi.properties.ipConfigurations, (item) => item.properties.privateIPAddress)), steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.firewallPrivateIp)]",
-          "dnsServerAdresses": "[if(equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall'), map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallPrivateIpApi.properties.ipConfigurations, (item) => item.properties.privateIPAddress), split(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.dnsServerAdresses, ','))]",
-          "administratorPassword": "[if(empty(steps('generalSettings').servicesSettings.administratorPassword), '', steps('generalSettings').servicesSettings.administratorPassword)]",
-          "mainframeLandingZoneSubscriptionIds": "[if(empty(steps('generalSettings').mainframeLandingZoneSubscriptions.mainframeLandingZoneSubscriptionIds), parse('[]'), map(steps('generalSettings').mainframeLandingZoneSubscriptions.mainframeLandingZoneSubscriptionIds, (item) => item.subscription))]",
-          "privateDnsZoneIdKeyVault": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdKeyVault), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdKeyVault)]",
-          "privateDnsZoneIdDataFactory": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactory), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactory)]",
-          "privateDnsZoneIdDataFactoryPortal": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactoryPortal), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactoryPortal)]",
-          "privateDnsZoneIdBlob": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdBlob), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdBlob)]",
-          "privateDnsZoneIdSqlServer": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdSqlServer), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdSqlServer)]"
+        },
+        "outputs": {
+            "kind": "Subscription",
+            "location": "[steps('basics').deploymentDetails.locationName]",
+            "subscriptionId": "[steps('basics').deploymentDetails.subscriptionId]",
+            "parameters": {
+                "location": "[if(empty(steps('basics').deploymentDetails.locationName), '', steps('basics').deploymentDetails.locationName)]",
+                "environment": "[if(empty(steps('basics').mainframeLandingZoneName.environment), '', steps('basics').mainframeLandingZoneName.environment)]",
+                "prefix": "[if(empty(steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix), '', steps('basics').mainframeLandingZoneName.mainframeLandingZonePrefix)]",
+                "tags": "[if(not(contains(steps('tags').tagsByResource, 'DataManagementAnalytics')), parse('{}'), first(map(parse(concat('[', string(steps('tags').tagsByResource), ']')), (item) => item.DataManagementAnalytics)))]",
+                "partner": "[if(empty(steps('basics').mainframeLandingZoneName.partner), '', steps('basics').mainframeLandingZoneName.partner)]",
+                "vnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange), '', steps('connectivitySettings').virtualNetworkConfiguration.virtualNetworkAddressCidrRange)]",
+                "appServicesSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.appServicesSubnetAddressPrefix)]",
+                "dataServicesSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.dataServicesSubnetAddressPrefix)]",
+                "dataIntegrationSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix)]",
+                "externalStorageSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix)]",
+                "loggingServicesSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix)]",
+                 "hubVnetId": "[if(empty(steps('connectivitySettings').hubVnetConfiguration.hubVirtualNetwork), '', steps('connectivitySettings').hubVnetConfiguration.hubVirtualNetwork)]",
+                "firewallPrivateIp": "[if(equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall'), first(map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallPrivateIpApi.properties.ipConfigurations, (item) => item.properties.privateIPAddress)), steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.firewallPrivateIp)]",
+                "dnsServerAdresses": "[if(equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall'), map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallPrivateIpApi.properties.ipConfigurations, (item) => item.properties.privateIPAddress), split(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.dnsServerAdresses, ','))]",
+                "administratorUsername": "[if(empty(steps('generalSettings').servicesSettings.administratorUsername), '', steps('generalSettings').servicesSettings.administratorUsername)]",
+                "administratorPassword": "[if(empty(steps('generalSettings').servicesSettings.administratorPassword), '', steps('generalSettings').servicesSettings.administratorPassword)]",
+                "mainframeLandingZoneSubscriptionIds": "[if(empty(steps('generalSettings').mainframeLandingZoneSubscriptions.mainframeLandingZoneSubscriptionIds), parse('[]'), map(steps('generalSettings').mainframeLandingZoneSubscriptions.mainframeLandingZoneSubscriptionIds, (item) => item.subscription))]",
+                "privateDnsZoneIdKeyVault": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdKeyVault), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdKeyVault)]",
+                "privateDnsZoneIdDataFactory": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactory), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactory)]",
+                "privateDnsZoneIdDataFactoryPortal": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactoryPortal), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactoryPortal)]",
+                "privateDnsZoneIdBlob": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdBlob), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdBlob)]",
+                "privateDnsZoneIdSqlServer": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdSqlServer), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdSqlServer)]",
+            }
         }
-      }
     }
-  }
+}

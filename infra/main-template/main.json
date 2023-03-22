@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.14.85.62628",
-      "templateHash": "12596640374729083942"
+      "version": "0.15.31.15270",
+      "templateHash": "7053050454248576486"
     }
   },
   "parameters": {
@@ -44,7 +44,7 @@
     },
     "partner": {
       "type": "string",
-      "defaultValue": "generic",
+      "defaultValue": "",
       "metadata": {
         "description": "Specifies the partner deployment."
       }
@@ -114,6 +114,13 @@
         "description": "Specifies the private IP addresses of the dns servers."
       }
     },
+    "administratorUsername": {
+      "type": "string",
+      "defaultValue": "SuperMainUser",
+      "metadata": {
+        "description": "Specifies the administrator username for the VMs and data services."
+      }
+    },
     "administratorPassword": {
       "type": "securestring",
       "metadata": {
@@ -165,7 +172,7 @@
   },
   "variables": {
     "name": "[toLower(format('{0}-{1}', parameters('prefix'), parameters('environment')))]",
-    "Sysguid": "PID-4241702A-BF95-4B5D-82E7-364BF62FE998",
+    "Sysguid": "[if(equals(parameters('partner'), 'raincode'), 'PID-965A5A3E-A4EC-4B79-A6B5-E94162B2AC9A', 'PID-4241702A-BF95-4B5D-82E7-364BF62FE998')]",
     "tagsDefault": {
       "Owner": "Azure Mainframe Landing Zone",
       "Project": "Azure Mainframe Landing Zone",
@@ -175,9 +182,8 @@
       "Sysguid": "[variables('Sysguid')]"
     },
     "tagsJoined": "[union(variables('tagsDefault'), parameters('tags'))]",
-    "administratorUsername": "SuperMainUser",
-    "sqlAdministratorUsername": "SqlServerMainUser",
-    "sqlServer001Name": "database01",
+    "sqlAdministratorUsername": "[parameters('administratorUsername')]",
+    "sqlServer001Name": "dsvr",
     "sqlserverAdminGroupName": "",
     "sqlserverAdminGroupObjectID": ""
   },
@@ -276,8 +282,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.85.62628",
-              "templateHash": "427233729868013432"
+              "version": "0.15.31.15270",
+              "templateHash": "17002414008045605102"
             }
           },
           "parameters": {
@@ -529,8 +535,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "10774796075468366015"
+                      "version": "0.15.31.15270",
+                      "templateHash": "14964742332284727571"
                     }
                   },
                   "parameters": {
@@ -613,7 +619,7 @@
       "condition": "[equals(parameters('partner'), 'raincode')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
-      "name": "TODO-Raincode",
+      "name": "[format('{0}-appServicesraincode', variables('Sysguid'))]",
       "resourceGroup": "[format('{0}-appServices', variables('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -631,7 +637,7 @@
             "value": "[variables('tagsJoined')]"
           },
           "adminUsername": {
-            "value": "[variables('administratorUsername')]"
+            "value": "[parameters('administratorUsername')]"
           },
           "adminPassword": {
             "value": "[parameters('administratorPassword')]"
@@ -646,8 +652,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.85.62628",
-              "templateHash": "4145369436841466249"
+              "version": "0.15.31.15270",
+              "templateHash": "4931846162906755898"
             }
           },
           "parameters": {
@@ -724,7 +730,15 @@
           },
           "variables": {
             "storageAccountName": "[uniqueString(resourceGroup().id)]",
-            "numberOfInstances": 2
+            "numberOfInstances": 2,
+            "imageReference": {
+              "Raincode-Studio-Gen2": {
+                "publisher": "raincode",
+                "offer": "raincode_studio",
+                "sku": "raincode_studio_gen2",
+                "version": "4.2.176"
+              }
+            }
           },
           "resources": [
             {
@@ -800,8 +814,7 @@
                       "subnet": {
                         "id": "[parameters('subnetId')]"
                       },
-                      "privateIPAddress": "10.1.0.6",
-                      "privateIPAllocationMethod": "Static"
+                      "privateIPAllocationMethod": "Dynamic"
                     },
                     "name": "LoadBalancerFrontend"
                   }
@@ -854,6 +867,11 @@
               "name": "[format('{0}{1}', parameters('vmNamePrefix'), range(0, variables('numberOfInstances'))[copyIndex()])]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
+              "plan": {
+                "name": "raincode_studio_gen2",
+                "publisher": "raincode",
+                "product": "raincode_studio"
+              },
               "properties": {
                 "availabilitySet": {
                   "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
@@ -867,14 +885,17 @@
                   "adminPassword": "[parameters('adminPassword')]"
                 },
                 "storageProfile": {
-                  "imageReference": {
-                    "publisher": "MicrosoftWindowsServer",
-                    "offer": "WindowsServer",
-                    "sku": "2019-Datacenter",
-                    "version": "latest"
-                  },
                   "osDisk": {
-                    "createOption": "FromImage"
+                    "createOption": "FromImage",
+                    "managedDisk": {
+                      "storageAccountType": "[parameters('storageAccountType')]"
+                    }
+                  },
+                  "imageReference": {
+                    "publisher": "raincode",
+                    "offer": "raincode_studio",
+                    "sku": "raincode_studio_gen2",
+                    "version": "4.2.176"
                   }
                 },
                 "networkProfile": {
@@ -927,7 +948,7 @@
             "value": "[variables('tagsJoined')]"
           },
           "adminUsername": {
-            "value": "[variables('administratorUsername')]"
+            "value": "[parameters('administratorUsername')]"
           },
           "adminPassword": {
             "value": "[parameters('administratorPassword')]"
@@ -942,8 +963,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.85.62628",
-              "templateHash": "4145369436841466249"
+              "version": "0.15.31.15270",
+              "templateHash": "7194773312585438624"
             }
           },
           "parameters": {
@@ -1096,8 +1117,7 @@
                       "subnet": {
                         "id": "[parameters('subnetId')]"
                       },
-                      "privateIPAddress": "10.1.0.6",
-                      "privateIPAllocationMethod": "Static"
+                      "privateIPAllocationMethod": "Dynamic"
                     },
                     "name": "LoadBalancerFrontend"
                   }
@@ -1237,8 +1257,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.85.62628",
-              "templateHash": "14654303063149784500"
+              "version": "0.15.31.15270",
+              "templateHash": "17144107885767135920"
             }
           },
           "parameters": {
@@ -1300,8 +1320,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "5638703788553744143"
+                      "version": "0.15.31.15270",
+                      "templateHash": "1847056974658780217"
                     }
                   },
                   "parameters": {
@@ -1442,8 +1462,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "615983241146076709"
+                      "version": "0.15.31.15270",
+                      "templateHash": "1651413322544391083"
                     }
                   },
                   "parameters": {
@@ -1507,8 +1527,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "13747445226459543692"
+                      "version": "0.15.31.15270",
+                      "templateHash": "6190605961964688001"
                     }
                   },
                   "parameters": {
@@ -1628,8 +1648,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.85.62628",
-              "templateHash": "2526612342110487553"
+              "version": "0.15.31.15270",
+              "templateHash": "232238589651426313"
             }
           },
           "parameters": {
@@ -1791,8 +1811,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.85.62628",
-              "templateHash": "17817057608202128087"
+              "version": "0.15.31.15270",
+              "templateHash": "803371721331396534"
             }
           },
           "parameters": {
@@ -1822,9 +1842,9 @@
             }
           },
           "variables": {
-            "storageRawName": "[format('{0}-raw', parameters('prefix'))]",
-            "storageEnrichedCuratedName": "[format('{0}-encur', parameters('prefix'))]",
-            "storageWorkspaceName": "[format('{0}-work', parameters('prefix'))]",
+            "storageRawName": "[format('raw-{0}', uniqueString(resourceGroup().id))]",
+            "storageEnrichedCuratedName": "[format('encur-{0}', uniqueString(resourceGroup().id))]",
+            "storageWorkspaceName": "[format('work-{0}', uniqueString(resourceGroup().id))]",
             "domainFileSytemNames": [
               "data",
               "di001",
@@ -1878,8 +1898,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "15467620742536726131"
+                      "version": "0.15.31.15270",
+                      "templateHash": "16564431003039105885"
                     }
                   },
                   "parameters": {
@@ -2201,8 +2221,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "15467620742536726131"
+                      "version": "0.15.31.15270",
+                      "templateHash": "16564431003039105885"
                     }
                   },
                   "parameters": {
@@ -2524,8 +2544,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "15467620742536726131"
+                      "version": "0.15.31.15270",
+                      "templateHash": "16564431003039105885"
                     }
                   },
                   "parameters": {
@@ -2888,8 +2908,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.85.62628",
-              "templateHash": "16804431355409911414"
+              "version": "0.15.31.15270",
+              "templateHash": "320139465369127202"
             }
           },
           "parameters": {
@@ -2927,13 +2947,14 @@
           },
           "variables": {
             "sqlserverDbName": "InitialDataDb",
-            "sqlserverPrivateEndpointName": "[format('{0}-private-endpoint', parameters('sqlserverName'))]"
+            "sqlserverPrivateEndpointName": "[format('{0}-private-endpoint', variables('sqlserverNameLabel'))]",
+            "sqlserverNameLabel": "[format('{0}-{1}', parameters('sqlserverName'), uniqueString(resourceGroup().id))]"
           },
           "resources": [
             {
               "type": "Microsoft.Sql/servers",
               "apiVersion": "2020-11-01-preview",
-              "name": "[parameters('sqlserverName')]",
+              "name": "[variables('sqlserverNameLabel')]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
               "identity": {
@@ -2951,7 +2972,7 @@
             {
               "type": "Microsoft.Sql/servers/databases",
               "apiVersion": "2020-11-01-preview",
-              "name": "[format('{0}/{1}', parameters('sqlserverName'), variables('sqlserverDbName'))]",
+              "name": "[format('{0}/{1}', variables('sqlserverNameLabel'), variables('sqlserverDbName'))]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
               "sku": {
@@ -2973,7 +2994,7 @@
                 "zoneRedundant": false
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]"
+                "[resourceId('Microsoft.Sql/servers', variables('sqlserverNameLabel'))]"
               ]
             },
             {
@@ -2991,7 +3012,7 @@
                       "groupIds": [
                         "sqlServer"
                       ],
-                      "privateLinkServiceId": "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]",
+                      "privateLinkServiceId": "[resourceId('Microsoft.Sql/servers', variables('sqlserverNameLabel'))]",
                       "requestMessage": ""
                     }
                   }
@@ -3001,7 +3022,7 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]"
+                "[resourceId('Microsoft.Sql/servers', variables('sqlserverNameLabel'))]"
               ]
             },
             {
@@ -3027,7 +3048,7 @@
           "outputs": {
             "sqlServerId": {
               "type": "string",
-              "value": "[resourceId('Microsoft.Sql/servers', parameters('sqlserverName'))]"
+              "value": "[resourceId('Microsoft.Sql/servers', variables('sqlserverNameLabel'))]"
             },
             "sqlServerDatabaseName": {
               "type": "string",
@@ -3080,8 +3101,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.85.62628",
-              "templateHash": "16987356077357122277"
+              "version": "0.15.31.15270",
+              "templateHash": "5488784303680261046"
             }
           },
           "parameters": {
@@ -3111,7 +3132,7 @@
             }
           },
           "variables": {
-            "storageExternal001Name": "[format('{0}-ext001', parameters('prefix'))]",
+            "storageExternal001Name": "[format('ext001-{0}', uniqueString(resourceGroup().id))]",
             "fileSytemNames": [
               "data"
             ]
@@ -3155,8 +3176,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "6498487609196391824"
+                      "version": "0.15.31.15270",
+                      "templateHash": "1208224551256121968"
                     }
                   },
                   "parameters": {
@@ -3405,8 +3426,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.14.85.62628",
-              "templateHash": "3495868733466005834"
+              "version": "0.15.31.15270",
+              "templateHash": "14064233113821379484"
             }
           },
           "parameters": {
@@ -3494,8 +3515,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "5638703788553744143"
+                      "version": "0.15.31.15270",
+                      "templateHash": "1847056974658780217"
                     }
                   },
                   "parameters": {
@@ -3654,8 +3675,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "13899758225122072801"
+                      "version": "0.15.31.15270",
+                      "templateHash": "15730538209895013425"
                     }
                   },
                   "parameters": {
@@ -3988,8 +4009,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "17309170539721936304"
+                      "version": "0.15.31.15270",
+                      "templateHash": "3264590345254550833"
                     }
                   },
                   "parameters": {
@@ -4051,8 +4072,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.14.85.62628",
-                      "templateHash": "17309170539721936304"
+                      "version": "0.15.31.15270",
+                      "templateHash": "3264590345254550833"
                     }
                   },
                   "parameters": {

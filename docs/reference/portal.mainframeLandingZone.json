@@ -375,10 +375,19 @@
                             "elements": [
                                 {
                                     "name": "administratorUsername",
-                                    "type": "Microsoft.Common.TextBlock",
+                                    "type": "Microsoft.Common.TextBox",
                                     "visible": true,
+                                    "label": "Admin User Name",
+                                    "defaultValue": "",                                   
+                                    "toolTip": "Specify a username (min 1 and max 10 lowercase characters and numbers).",
                                     "constraints": {
-                                        "required": true
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^[a-z0-9]{1,10}$",
+                                                "message": "The username must be between 1-10 lowercase characters and numbers."
+                                            }
+                                        ]
                                     },
                                     "options": {
                                         "text": "Select an administrator username for VM login and database services ",

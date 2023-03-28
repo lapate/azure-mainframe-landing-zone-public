@@ -175,20 +175,11 @@
                                                 "value": "raincode"
                                             },
                                             {
-                                                "label": "TmaxSoft",
-                                                "description": "Select if you want to use TmaxSoft template for deployment.",
-                                                "value": "tmaxsoft"
-                                            },
-                                            {
-                                                "label": "OpenTxt",
-                                                "description": "Select if you want to use OpenTxt template for deployment.",
-                                                "value": "opentxt"
-                                            },                                            
-                                            {
-                                                "label": "NTTData",
-                                                "description": "Select if you want to use NTTData template for deployment.",
-                                                "value": "nttdata"
-                                            }                                        ],
+                                                "label": "Stromasys",
+                                                "description": "Select if you want to use Stromasys template for deployment.",
+                                                "value": "stromasys"
+                                            }
+                                         ],
                                         "required": true
                                     }
                                 },

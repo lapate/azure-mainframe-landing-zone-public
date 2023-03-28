@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.15.31.15270",
-      "templateHash": "7053050454248576486"
+      "templateHash": "8969465707492015196"
     }
   },
   "parameters": {
@@ -172,7 +172,9 @@
   },
   "variables": {
     "name": "[toLower(format('{0}-{1}', parameters('prefix'), parameters('environment')))]",
-    "Sysguid": "[if(equals(parameters('partner'), 'raincode'), 'PID-965A5A3E-A4EC-4B79-A6B5-E94162B2AC9A', 'PID-4241702A-BF95-4B5D-82E7-364BF62FE998')]",
+    "guidforraincode": "[if(equals(parameters('partner'), 'raincode'), 'PID-965A5A3E-A4EC-4B79-A6B5-E94162B2AC9A', '')]",
+    "guidforstromasys": "[if(equals(parameters('partner'), 'stromasys'), '4C25D08B-B822-488F-BC77-3CC7370C10A8', '')]",
+    "Sysguid": "[if(not(equals(variables('guidforraincode'), '')), variables('guidforraincode'), if(not(equals(variables('guidforstromasys'), '')), variables('guidforstromasys'), 'PID-4241702A-BF95-4B5D-82E7-364BF62FE998'))]",
     "tagsDefault": {
       "Owner": "Azure Mainframe Landing Zone",
       "Project": "Azure Mainframe Landing Zone",
@@ -896,6 +898,309 @@
                     "offer": "raincode_studio",
                     "sku": "raincode_studio_gen2",
                     "version": "4.2.176"
+                  }
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[range(0, variables('numberOfInstances'))[copyIndex()]]))]"
+                    }
+                  ]
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true,
+                    "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2021-08-01').primaryEndpoints.blob]"
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[range(0, variables('numberOfInstances'))[copyIndex()]]))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}-appServices', variables('name')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid')))]"
+      ]
+    },
+    {
+      "condition": "[equals(parameters('partner'), 'stromasys')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('{0}-appServicesstromasys', variables('Sysguid'))]",
+      "resourceGroup": "[format('{0}-appServices', variables('name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "prefix": {
+            "value": "[variables('name')]"
+          },
+          "tags": {
+            "value": "[variables('tagsJoined')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('administratorUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('administratorPassword')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appServices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2020-10-01').outputs.appServicesSubnetId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.15.31.15270",
+              "templateHash": "10324799745734874048"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "adminUsername": {
+              "type": "string",
+              "metadata": {
+                "description": "Admin username"
+              }
+            },
+            "adminPassword": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Admin password"
+              }
+            },
+            "vmNamePrefix": {
+              "type": "string",
+              "defaultValue": "[format('{0}vm', parameters('prefix'))]",
+              "metadata": {
+                "description": "Prefix to use for VM names"
+              }
+            },
+            "vmSize": {
+              "type": "string",
+              "defaultValue": "Standard_D2s_v3",
+              "metadata": {
+                "description": "Size of the virtual machines"
+              }
+            },
+            "loadBalancerName": {
+              "type": "string",
+              "defaultValue": "[format('{0}-ilb', parameters('prefix'))]",
+              "metadata": {
+                "description": "Loab Balancer name"
+              }
+            },
+            "networkInterfaceName": {
+              "type": "string",
+              "defaultValue": "[format('{0}-nic', parameters('prefix'))]",
+              "metadata": {
+                "description": "Network Interface name"
+              }
+            },
+            "availabilitySetName": {
+              "type": "string",
+              "defaultValue": "[format('{0}-AvSet', parameters('prefix'))]",
+              "metadata": {
+                "description": "Availability Set name"
+              }
+            },
+            "storageAccountType": {
+              "type": "string",
+              "defaultValue": "Standard_LRS",
+              "metadata": {
+                "description": "Storage Type for Vhds"
+              }
+            },
+            "subnetId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Id of the subnet"
+              }
+            }
+          },
+          "variables": {
+            "storageAccountName": "[uniqueString(resourceGroup().id)]",
+            "numberOfInstances": 2
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-08-01",
+              "name": "[variables('storageAccountName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "[parameters('storageAccountType')]"
+              },
+              "kind": "StorageV2"
+            },
+            {
+              "type": "Microsoft.Compute/availabilitySets",
+              "apiVersion": "2021-11-01",
+              "name": "[parameters('availabilitySetName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Aligned"
+              },
+              "properties": {
+                "platformUpdateDomainCount": 2,
+                "platformFaultDomainCount": 2
+              }
+            },
+            {
+              "copy": {
+                "name": "networkInterface",
+                "count": "[length(range(0, variables('numberOfInstances')))]"
+              },
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig1",
+                    "properties": {
+                      "privateIPAllocationMethod": "Dynamic",
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "loadBalancerBackendAddressPools": [
+                        {
+                          "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancerName'), 'BackendPool1')]"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancerName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/loadBalancers",
+              "apiVersion": "2021-05-01",
+              "name": "[parameters('loadBalancerName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard"
+              },
+              "properties": {
+                "frontendIPConfigurations": [
+                  {
+                    "properties": {
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "privateIPAllocationMethod": "Dynamic"
+                    },
+                    "name": "LoadBalancerFrontend"
+                  }
+                ],
+                "backendAddressPools": [
+                  {
+                    "name": "BackendPool1"
+                  }
+                ],
+                "loadBalancingRules": [
+                  {
+                    "properties": {
+                      "frontendIPConfiguration": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', parameters('loadBalancerName'), 'LoadBalancerFrontend')]"
+                      },
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancerName'), 'BackendPool1')]"
+                      },
+                      "probe": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/probes', parameters('loadBalancerName'), 'lbprobe')]"
+                      },
+                      "protocol": "Tcp",
+                      "frontendPort": 80,
+                      "backendPort": 80,
+                      "idleTimeoutInMinutes": 15
+                    },
+                    "name": "lbrule"
+                  }
+                ],
+                "probes": [
+                  {
+                    "properties": {
+                      "protocol": "Tcp",
+                      "port": 80,
+                      "intervalInSeconds": 15,
+                      "numberOfProbes": 2
+                    },
+                    "name": "lbprobe"
+                  }
+                ]
+              }
+            },
+            {
+              "copy": {
+                "name": "vm",
+                "count": "[length(range(0, variables('numberOfInstances')))]"
+              },
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}{1}', parameters('vmNamePrefix'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "plan": {
+                "name": "<name>",
+                "publisher": "<publisher>",
+                "product": "<product>"
+              },
+              "properties": {
+                "availabilitySet": {
+                  "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
+                },
+                "hardwareProfile": {
+                  "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                  "computerName": "[format('{0}{1}', parameters('vmNamePrefix'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+                  "adminUsername": "[parameters('adminUsername')]",
+                  "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                  "osDisk": {
+                    "createOption": "FromImage",
+                    "managedDisk": {
+                      "storageAccountType": "[parameters('storageAccountType')]"
+                    }
+                  },
+                  "imageReference": {
+                    "publisher": "<stromasys>",
+                    "offer": "<offername>",
+                    "sku": "<skuname>",
+                    "version": "<x.x.xxxx>"
                   }
                 },
                 "networkProfile": {

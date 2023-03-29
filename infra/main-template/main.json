@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.15.31.15270",
-      "templateHash": "8969465707492015196"
+      "templateHash": "9224245791524114264"
     }
   },
   "parameters": {
@@ -173,7 +173,7 @@
   "variables": {
     "name": "[toLower(format('{0}-{1}', parameters('prefix'), parameters('environment')))]",
     "guidforraincode": "[if(equals(parameters('partner'), 'raincode'), 'PID-965A5A3E-A4EC-4B79-A6B5-E94162B2AC9A', '')]",
-    "guidforstromasys": "[if(equals(parameters('partner'), 'stromasys'), '4C25D08B-B822-488F-BC77-3CC7370C10A8', '')]",
+    "guidforstromasys": "[if(equals(parameters('partner'), 'stromasys'), 'PID-4C25D08B-B822-488F-BC77-3CC7370C10A8', '')]",
     "Sysguid": "[if(not(equals(variables('guidforraincode'), '')), variables('guidforraincode'), if(not(equals(variables('guidforstromasys'), '')), variables('guidforstromasys'), 'PID-4241702A-BF95-4B5D-82E7-364BF62FE998'))]",
     "tagsDefault": {
       "Owner": "Azure Mainframe Landing Zone",
@@ -952,7 +952,7 @@
           "adminUsername": {
             "value": "[parameters('administratorUsername')]"
           },
-          "adminPassword": {
+          "adminPasswordOrKey": {
             "value": "[parameters('administratorPassword')]"
           },
           "subnetId": {
@@ -966,64 +966,52 @@
             "_generator": {
               "name": "bicep",
               "version": "0.15.31.15270",
-              "templateHash": "10324799745734874048"
+              "templateHash": "14117354460597452115"
             }
           },
           "parameters": {
             "location": {
-              "type": "string"
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Location of all resources"
+              }
             },
             "prefix": {
-              "type": "string"
+              "type": "string",
+              "defaultValue": "test",
+              "metadata": {
+                "description": "Prefix for all names"
+              }
             },
             "tags": {
-              "type": "object"
-            },
-            "adminUsername": {
-              "type": "string",
+              "type": "object",
+              "defaultValue": {
+                "tag1": "tag-value-1"
+              },
               "metadata": {
-                "description": "Admin username"
+                "description": "Tags for all resources"
               }
             },
-            "adminPassword": {
-              "type": "securestring",
+            "vmSizeEmulatorHost": {
+              "type": "string",
+              "defaultValue": "Standard_F8s_v2",
               "metadata": {
-                "description": "Admin password"
+                "description": "Size of the Emulator Host VMs"
               }
             },
-            "vmNamePrefix": {
+            "vmSizeLicenseServer": {
               "type": "string",
-              "defaultValue": "[format('{0}vm', parameters('prefix'))]",
+              "defaultValue": "Standard_B2s",
               "metadata": {
-                "description": "Prefix to use for VM names"
+                "description": "Size of the License Server VM"
               }
             },
-            "vmSize": {
+            "vmSizeManager": {
               "type": "string",
-              "defaultValue": "Standard_D2s_v3",
+              "defaultValue": "Standard_B2s",
               "metadata": {
-                "description": "Size of the virtual machines"
-              }
-            },
-            "loadBalancerName": {
-              "type": "string",
-              "defaultValue": "[format('{0}-ilb', parameters('prefix'))]",
-              "metadata": {
-                "description": "Loab Balancer name"
-              }
-            },
-            "networkInterfaceName": {
-              "type": "string",
-              "defaultValue": "[format('{0}-nic', parameters('prefix'))]",
-              "metadata": {
-                "description": "Network Interface name"
-              }
-            },
-            "availabilitySetName": {
-              "type": "string",
-              "defaultValue": "[format('{0}-AvSet', parameters('prefix'))]",
-              "metadata": {
-                "description": "Availability Set name"
+                "description": "Size of the Manager VM"
               }
             },
             "storageAccountType": {
@@ -1039,11 +1027,69 @@
               "metadata": {
                 "description": "Id of the subnet"
               }
+            },
+            "adminUsername": {
+              "type": "string",
+              "defaultValue": "sshuser",
+              "metadata": {
+                "description": "Admin Username for VMs"
+              }
+            },
+            "authenticationType": {
+              "type": "string",
+              "defaultValue": "password",
+              "allowedValues": [
+                "sshPublicKey",
+                "password"
+              ],
+              "metadata": {
+                "description": "Type of authentication to use on the Virtual Machine. SSH key is recommended"
+              }
+            },
+            "adminPasswordOrKey": {
+              "type": "securestring",
+              "metadata": {
+                "description": "SSH key or password for the VMs. SSH key is recommended"
+              }
+            },
+            "emulatorGuestAppPort": {
+              "type": "int",
+              "defaultValue": 80,
+              "metadata": {
+                "description": "Application port on the emulator guest to expose on the internal network"
+              }
             }
           },
           "variables": {
+            "charonImageReference": {
+              "publisher": "stromasys",
+              "offer": "charon-ssp-ve",
+              "sku": "charon-ssp-with-ve-license",
+              "version": "latest"
+            },
+            "charonPlan": {
+              "name": "charon-ssp-with-ve-license",
+              "publisher": "stromasys",
+              "product": "charon-ssp-ve"
+            },
+            "numberOfResourcesHA": 2,
+            "availabilitySetName": "[format('{0}-availability-set', parameters('prefix'))]",
+            "loadBalancerName": "[format('{0}-load-balancer', parameters('prefix'))]",
+            "networkSecurityGroupName": "[format('{0}-security-group', parameters('prefix'))]",
+            "networkInterfaceNamePrefix": "[format('{0}-nic', parameters('prefix'))]",
+            "vmNamePrefix": "[format('{0}-vm', parameters('prefix'))]",
             "storageAccountName": "[uniqueString(resourceGroup().id)]",
-            "numberOfInstances": 2
+            "linuxConfiguration": {
+              "disablePasswordAuthentication": true,
+              "ssh": {
+                "publicKeys": [
+                  {
+                    "path": "[format('/home/{0}/.ssh/authorized_keys', parameters('adminUsername'))]",
+                    "keyData": "[parameters('adminPasswordOrKey')]"
+                  }
+                ]
+              }
+            }
           },
           "resources": [
             {
@@ -1058,55 +1104,27 @@
               "kind": "StorageV2"
             },
             {
+              "copy": {
+                "name": "availabilitySet",
+                "count": "[length(range(0, 3))]"
+              },
               "type": "Microsoft.Compute/availabilitySets",
               "apiVersion": "2021-11-01",
-              "name": "[parameters('availabilitySetName')]",
+              "name": "[format('{0}-{1}', variables('availabilitySetName'), range(0, 3)[copyIndex()])]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
               "sku": {
                 "name": "Aligned"
               },
               "properties": {
-                "platformUpdateDomainCount": 2,
-                "platformFaultDomainCount": 2
+                "platformUpdateDomainCount": "[variables('numberOfResourcesHA')]",
+                "platformFaultDomainCount": "[variables('numberOfResourcesHA')]"
               }
-            },
-            {
-              "copy": {
-                "name": "networkInterface",
-                "count": "[length(range(0, variables('numberOfInstances')))]"
-              },
-              "type": "Microsoft.Network/networkInterfaces",
-              "apiVersion": "2021-05-01",
-              "name": "[format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[copyIndex()])]",
-              "location": "[parameters('location')]",
-              "tags": "[parameters('tags')]",
-              "properties": {
-                "ipConfigurations": [
-                  {
-                    "name": "ipconfig1",
-                    "properties": {
-                      "privateIPAllocationMethod": "Dynamic",
-                      "subnet": {
-                        "id": "[parameters('subnetId')]"
-                      },
-                      "loadBalancerBackendAddressPools": [
-                        {
-                          "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancerName'), 'BackendPool1')]"
-                        }
-                      ]
-                    }
-                  }
-                ]
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancerName'))]"
-              ]
             },
             {
               "type": "Microsoft.Network/loadBalancers",
               "apiVersion": "2021-05-01",
-              "name": "[parameters('loadBalancerName')]",
+              "name": "[format('{0}-emulator-host-and-guest', variables('loadBalancerName'))]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
               "sku": {
@@ -1126,69 +1144,438 @@
                 ],
                 "backendAddressPools": [
                   {
-                    "name": "BackendPool1"
+                    "name": "BackendPoolHostSSH"
+                  },
+                  {
+                    "name": "BackendPoolGuestApp"
                   }
                 ],
                 "loadBalancingRules": [
                   {
                     "properties": {
                       "frontendIPConfiguration": {
-                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', parameters('loadBalancerName'), 'LoadBalancerFrontend')]"
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', format('{0}-emulator-host-and-guest', variables('loadBalancerName')), 'LoadBalancerFrontend')]"
                       },
                       "backendAddressPool": {
-                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancerName'), 'BackendPool1')]"
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-emulator-host-and-guest', variables('loadBalancerName')), 'BackendPoolHostSSH')]"
                       },
                       "probe": {
-                        "id": "[resourceId('Microsoft.Network/loadBalancers/probes', parameters('loadBalancerName'), 'lbprobe')]"
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/probes', format('{0}-emulator-host-and-guest', variables('loadBalancerName')), 'LBProbeHostSSH')]"
                       },
                       "protocol": "Tcp",
-                      "frontendPort": 80,
-                      "backendPort": 80,
+                      "frontendPort": 22,
+                      "backendPort": 22,
                       "idleTimeoutInMinutes": 15
                     },
-                    "name": "lbrule"
+                    "name": "LBRuleHostSSH"
+                  },
+                  {
+                    "properties": {
+                      "frontendIPConfiguration": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', format('{0}-emulator-host-and-guest', variables('loadBalancerName')), 'LoadBalancerFrontend')]"
+                      },
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-emulator-host-and-guest', variables('loadBalancerName')), 'BackendPoolGuestApp')]"
+                      },
+                      "probe": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/probes', format('{0}-emulator-host-and-guest', variables('loadBalancerName')), 'LBProbeGuestApp')]"
+                      },
+                      "protocol": "Tcp",
+                      "frontendPort": "[parameters('emulatorGuestAppPort')]",
+                      "backendPort": "[parameters('emulatorGuestAppPort')]",
+                      "idleTimeoutInMinutes": 15
+                    },
+                    "name": "LBRuleGuestApp"
                   }
                 ],
                 "probes": [
                   {
                     "properties": {
                       "protocol": "Tcp",
-                      "port": 80,
+                      "port": 22,
                       "intervalInSeconds": 15,
                       "numberOfProbes": 2
                     },
-                    "name": "lbprobe"
+                    "name": "LBProbeHostSSH"
+                  },
+                  {
+                    "properties": {
+                      "protocol": "Tcp",
+                      "port": "[parameters('emulatorGuestAppPort')]",
+                      "intervalInSeconds": 15,
+                      "numberOfProbes": 2
+                    },
+                    "name": "LBProbeGuestApp"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/loadBalancers",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}-license-server', variables('loadBalancerName'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard"
+              },
+              "properties": {
+                "frontendIPConfigurations": [
+                  {
+                    "properties": {
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "privateIPAllocationMethod": "Dynamic"
+                    },
+                    "name": "LoadBalancerFrontend"
+                  }
+                ],
+                "backendAddressPools": [
+                  {
+                    "name": "BackendPoolSSH"
+                  },
+                  {
+                    "name": "BackendPoolLicense"
+                  }
+                ],
+                "loadBalancingRules": [
+                  {
+                    "properties": {
+                      "frontendIPConfiguration": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', format('{0}-license-server', variables('loadBalancerName')), 'LoadBalancerFrontend')]"
+                      },
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-license-server', variables('loadBalancerName')), 'BackendPoolSSH')]"
+                      },
+                      "probe": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/probes', format('{0}-license-server', variables('loadBalancerName')), 'LBProbeSSH')]"
+                      },
+                      "protocol": "Tcp",
+                      "frontendPort": 22,
+                      "backendPort": 22,
+                      "idleTimeoutInMinutes": 15
+                    },
+                    "name": "LBRuleSSH"
+                  },
+                  {
+                    "properties": {
+                      "frontendIPConfiguration": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', format('{0}-license-server', variables('loadBalancerName')), 'LoadBalancerFrontend')]"
+                      },
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-license-server', variables('loadBalancerName')), 'BackendPoolLicense')]"
+                      },
+                      "probe": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/probes', format('{0}-license-server', variables('loadBalancerName')), 'LBProbeLicense')]"
+                      },
+                      "protocol": "Tcp",
+                      "frontendPort": 8083,
+                      "backendPort": 8083,
+                      "idleTimeoutInMinutes": 15
+                    },
+                    "name": "LBRuleLicense"
+                  }
+                ],
+                "probes": [
+                  {
+                    "properties": {
+                      "protocol": "Tcp",
+                      "port": 22,
+                      "intervalInSeconds": 15,
+                      "numberOfProbes": 2
+                    },
+                    "name": "LBProbeSSH"
+                  },
+                  {
+                    "properties": {
+                      "protocol": "Tcp",
+                      "port": 8083,
+                      "intervalInSeconds": 15,
+                      "numberOfProbes": 2
+                    },
+                    "name": "LBProbeLicense"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/loadBalancers",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}-manager', variables('loadBalancerName'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard"
+              },
+              "properties": {
+                "frontendIPConfigurations": [
+                  {
+                    "properties": {
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "privateIPAllocationMethod": "Dynamic"
+                    },
+                    "name": "LoadBalancerFrontend"
+                  }
+                ],
+                "backendAddressPools": [
+                  {
+                    "name": "BackendPoolSSH"
+                  }
+                ],
+                "loadBalancingRules": [
+                  {
+                    "properties": {
+                      "frontendIPConfiguration": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', format('{0}-manager', variables('loadBalancerName')), 'LoadBalancerFrontend')]"
+                      },
+                      "backendAddressPool": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-manager', variables('loadBalancerName')), 'BackendPoolSSH')]"
+                      },
+                      "probe": {
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/probes', format('{0}-manager', variables('loadBalancerName')), 'LBProbeSSH')]"
+                      },
+                      "protocol": "Tcp",
+                      "frontendPort": 22,
+                      "backendPort": 22,
+                      "idleTimeoutInMinutes": 15
+                    },
+                    "name": "LBRuleSSH"
+                  }
+                ],
+                "probes": [
+                  {
+                    "properties": {
+                      "protocol": "Tcp",
+                      "port": 22,
+                      "intervalInSeconds": 15,
+                      "numberOfProbes": 2
+                    },
+                    "name": "LBProbeSSH"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}-ssh', variables('networkSecurityGroupName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "securityRules": [
+                  {
+                    "name": "SSH",
+                    "properties": {
+                      "priority": 1000,
+                      "protocol": "Tcp",
+                      "access": "Allow",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "*",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "22"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}-emulator-guest', variables('networkSecurityGroupName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "securityRules": [
+                  {
+                    "name": "HTTP",
+                    "properties": {
+                      "priority": 1000,
+                      "protocol": "Tcp",
+                      "access": "Allow",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "*",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "[format('{0}', parameters('emulatorGuestAppPort'))]"
+                    }
                   }
                 ]
               }
             },
             {
               "copy": {
-                "name": "vm",
-                "count": "[length(range(0, variables('numberOfInstances')))]"
+                "name": "networkInterfaceEmulatorHost",
+                "count": "[length(range(0, variables('numberOfResourcesHA')))]"
+              },
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}-emulator-host-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig1",
+                    "properties": {
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "privateIPAllocationMethod": "Dynamic",
+                      "loadBalancerBackendAddressPools": [
+                        {
+                          "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-emulator-host-and-guest', variables('loadBalancerName')), 'BackendPoolHostSSH')]"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-ssh', variables('networkSecurityGroupName')))]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', format('{0}-emulator-host-and-guest', variables('loadBalancerName')))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-ssh', variables('networkSecurityGroupName')))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "networkInterfaceEmulatorGuest",
+                "count": "[length(range(0, variables('numberOfResourcesHA')))]"
+              },
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}-emulator-guest-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig1",
+                    "properties": {
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "privateIPAllocationMethod": "Dynamic",
+                      "loadBalancerBackendAddressPools": [
+                        {
+                          "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-emulator-host-and-guest', variables('loadBalancerName')), 'BackendPoolGuestApp')]"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-emulator-guest', variables('networkSecurityGroupName')))]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', format('{0}-emulator-host-and-guest', variables('loadBalancerName')))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-emulator-guest', variables('networkSecurityGroupName')))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "networkInterfaceLicenseServer",
+                "count": "[length(range(0, variables('numberOfResourcesHA')))]"
+              },
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}-license-server-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig1",
+                    "properties": {
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "privateIPAllocationMethod": "Dynamic",
+                      "loadBalancerBackendAddressPools": [
+                        {
+                          "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-license-server', variables('loadBalancerName')), 'BackendPoolSSH')]"
+                        },
+                        {
+                          "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-license-server', variables('loadBalancerName')), 'BackendPoolLicense')]"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-ssh', variables('networkSecurityGroupName')))]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', format('{0}-license-server', variables('loadBalancerName')))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-ssh', variables('networkSecurityGroupName')))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "networkInterfaceManager",
+                "count": "[length(range(0, variables('numberOfResourcesHA')))]"
+              },
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}-manager-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig1",
+                    "properties": {
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "privateIPAllocationMethod": "Dynamic",
+                      "loadBalancerBackendAddressPools": [
+                        {
+                          "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', format('{0}-manager', variables('loadBalancerName')), 'BackendPoolSSH')]"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-ssh', variables('networkSecurityGroupName')))]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', format('{0}-manager', variables('loadBalancerName')))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-ssh', variables('networkSecurityGroupName')))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "vmEmulator",
+                "count": "[length(range(0, variables('numberOfResourcesHA')))]"
               },
               "type": "Microsoft.Compute/virtualMachines",
               "apiVersion": "2021-11-01",
-              "name": "[format('{0}{1}', parameters('vmNamePrefix'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+              "name": "[format('{0}-host-{1}', variables('vmNamePrefix'), range(0, variables('numberOfResourcesHA'))[copyIndex()])]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
-              "plan": {
-                "name": "<name>",
-                "publisher": "<publisher>",
-                "product": "<product>"
-              },
+              "plan": "[variables('charonPlan')]",
               "properties": {
                 "availabilitySet": {
-                  "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
+                  "id": "[resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', variables('availabilitySetName'), range(0, 3)[0]))]"
                 },
                 "hardwareProfile": {
-                  "vmSize": "[parameters('vmSize')]"
+                  "vmSize": "[parameters('vmSizeEmulatorHost')]"
                 },
                 "osProfile": {
-                  "computerName": "[format('{0}{1}', parameters('vmNamePrefix'), range(0, variables('numberOfInstances'))[copyIndex()])]",
+                  "computerName": "[format('{0}-host-{1}', variables('vmNamePrefix'), range(0, variables('numberOfResourcesHA'))[copyIndex()])]",
                   "adminUsername": "[parameters('adminUsername')]",
-                  "adminPassword": "[parameters('adminPassword')]"
+                  "adminPassword": "[parameters('adminPasswordOrKey')]",
+                  "linuxConfiguration": "[if(equals(parameters('authenticationType'), 'password'), null(), variables('linuxConfiguration'))]"
                 },
+                "securityProfile": null,
                 "storageProfile": {
                   "osDisk": {
                     "createOption": "FromImage",
@@ -1196,17 +1583,21 @@
                       "storageAccountType": "[parameters('storageAccountType')]"
                     }
                   },
-                  "imageReference": {
-                    "publisher": "<stromasys>",
-                    "offer": "<offername>",
-                    "sku": "<skuname>",
-                    "version": "<x.x.xxxx>"
-                  }
+                  "imageReference": "[variables('charonImageReference')]"
                 },
                 "networkProfile": {
                   "networkInterfaces": [
                     {
-                      "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[range(0, variables('numberOfInstances'))[copyIndex()]]))]"
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-emulator-host-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[range(0, variables('numberOfResourcesHA'))[copyIndex()]]))]",
+                      "properties": {
+                        "primary": true
+                      }
+                    },
+                    {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-emulator-guest-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[range(0, variables('numberOfResourcesHA'))[copyIndex()]]))]",
+                      "properties": {
+                        "primary": false
+                      }
                     }
                   ]
                 },
@@ -1218,8 +1609,117 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]",
-                "[resourceId('Microsoft.Network/networkInterfaces', format('{0}{1}', parameters('networkInterfaceName'), range(0, variables('numberOfInstances'))[range(0, variables('numberOfInstances'))[copyIndex()]]))]",
+                "[resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', variables('availabilitySetName'), range(0, 3)[0]))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-emulator-guest-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[range(0, variables('numberOfResourcesHA'))[copyIndex()]]))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-emulator-host-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[range(0, variables('numberOfResourcesHA'))[copyIndex()]]))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "vmLicenseServer",
+                "count": "[length(range(0, variables('numberOfResourcesHA')))]"
+              },
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}-license-server-{1}', variables('vmNamePrefix'), range(0, variables('numberOfResourcesHA'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "plan": "[variables('charonPlan')]",
+              "properties": {
+                "availabilitySet": {
+                  "id": "[resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', variables('availabilitySetName'), range(0, 3)[1]))]"
+                },
+                "hardwareProfile": {
+                  "vmSize": "[parameters('vmSizeLicenseServer')]"
+                },
+                "osProfile": {
+                  "computerName": "[format('{0}-license-server-{1}', variables('vmNamePrefix'), range(0, variables('numberOfResourcesHA'))[copyIndex()])]",
+                  "adminUsername": "[parameters('adminUsername')]",
+                  "adminPassword": "[parameters('adminPasswordOrKey')]",
+                  "linuxConfiguration": "[if(equals(parameters('authenticationType'), 'password'), null(), variables('linuxConfiguration'))]"
+                },
+                "securityProfile": null,
+                "storageProfile": {
+                  "osDisk": {
+                    "createOption": "FromImage",
+                    "managedDisk": {
+                      "storageAccountType": "[parameters('storageAccountType')]"
+                    }
+                  },
+                  "imageReference": "[variables('charonImageReference')]"
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-license-server-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[range(0, variables('numberOfResourcesHA'))[copyIndex()]]))]"
+                    }
+                  ]
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true,
+                    "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2021-08-01').primaryEndpoints.blob]"
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', variables('availabilitySetName'), range(0, 3)[1]))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-license-server-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[range(0, variables('numberOfResourcesHA'))[copyIndex()]]))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "vmManager",
+                "count": "[length(range(0, variables('numberOfResourcesHA')))]"
+              },
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2021-11-01",
+              "name": "[format('{0}-manager-{1}', variables('vmNamePrefix'), range(0, variables('numberOfResourcesHA'))[copyIndex()])]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "plan": "[variables('charonPlan')]",
+              "properties": {
+                "availabilitySet": {
+                  "id": "[resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', variables('availabilitySetName'), range(0, 3)[2]))]"
+                },
+                "hardwareProfile": {
+                  "vmSize": "[parameters('vmSizeManager')]"
+                },
+                "osProfile": {
+                  "computerName": "[format('{0}-manager', variables('vmNamePrefix'))]",
+                  "adminUsername": "[parameters('adminUsername')]",
+                  "adminPassword": "[parameters('adminPasswordOrKey')]",
+                  "linuxConfiguration": "[if(equals(parameters('authenticationType'), 'password'), null(), variables('linuxConfiguration'))]"
+                },
+                "securityProfile": null,
+                "storageProfile": {
+                  "osDisk": {
+                    "createOption": "FromImage",
+                    "managedDisk": {
+                      "storageAccountType": "[parameters('storageAccountType')]"
+                    }
+                  },
+                  "imageReference": "[variables('charonImageReference')]"
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-manager-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[range(0, variables('numberOfResourcesHA'))[copyIndex()]]))]"
+                    }
+                  ]
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true,
+                    "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2021-08-01').primaryEndpoints.blob]"
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', variables('availabilitySetName'), range(0, 3)[2]))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-manager-{1}', variables('networkInterfaceNamePrefix'), range(0, variables('numberOfResourcesHA'))[range(0, variables('numberOfResourcesHA'))[copyIndex()]]))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
               ]
             }

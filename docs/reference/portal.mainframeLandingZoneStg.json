@@ -466,6 +466,45 @@
                                             "uri": ""
                                         }
                                     }
+                                    
+                                },
+                                {
+                                    "name": "aksIdentityName",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": "[equals(steps('basics').mainframeLandingZoneName.partner, 'genericaks')]",
+                                    "label": "AKS Managed Identity Name",
+                                    "defaultValue": "",                                   
+                                    "toolTip": "Specify a identity name",
+                                    "constraints": {
+                                        "required": true
+                                    },
+                                    "options": {
+                                        "text": "Specify a managed identity name for AKS connectivity to other services",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                    
+                                },
+                                {
+                                    "name": "clusterName",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": "[equals(steps('basics').mainframeLandingZoneName.partner, 'genericaks')]",
+                                    "label": "AKS Cluster Name",
+                                    "defaultValue": "",                                   
+                                    "toolTip": "Specify a cluster name",
+                                    "constraints": {
+                                        "required": true
+                                    },
+                                    "options": {
+                                        "text": "Specify the AKS cluster name",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                    
                                 }
                             ]
                         },
@@ -1168,6 +1207,8 @@
                 "dnsServerAdresses": "[if(equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall'), map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallPrivateIpApi.properties.ipConfigurations, (item) => item.properties.privateIPAddress), split(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.dnsServerAdresses, ','))]",
                 "administratorUsername": "[if(empty(steps('generalSettings').servicesSettings.administratorUsername), '', steps('generalSettings').servicesSettings.administratorUsername)]",
                 "administratorPassword": "[if(empty(steps('generalSettings').servicesSettings.administratorPassword), '', steps('generalSettings').servicesSettings.administratorPassword)]",
+                "aksIdentityName": "[if(empty(steps('generalSettings').servicesSettings.aksIdentityName), '', steps('generalSettings').servicesSettings.aksIdentityName)]",  
+                "clusterName": "[if(empty(steps('generalSettings').servicesSettings.clusterName), '', steps('generalSettings').servicesSettings.clusterName)]",
                 "aksuseraccessprincipalId": "[if(empty(steps('generalSettings').servicesSettings.aksuseraccessprincipalId), '', steps('generalSettings').servicesSettings.aksuseraccessprincipalId)]",
                 "aksadminaccessprincipalId": "[if(empty(steps('generalSettings').servicesSettings.aksadminaccessprincipalId), '', steps('generalSettings').servicesSettings.aksadminaccessprincipalId)]",
                 "mainframeLandingZoneSubscriptionIds": "[if(empty(steps('generalSettings').mainframeLandingZoneSubscriptions.mainframeLandingZoneSubscriptionIds), parse('[]'), map(steps('generalSettings').mainframeLandingZoneSubscriptions.mainframeLandingZoneSubscriptionIds, (item) => item.subscription))]",

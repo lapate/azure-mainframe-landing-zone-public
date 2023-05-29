@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "11397246096280244496"
+      "templateHash": "10220366737249381483"
     }
   },
   "parameters": {
@@ -211,7 +211,8 @@
     "guidforstromasys": "[if(equals(parameters('partner'), 'stromasys'), 'PID-4C25D08B-B822-488F-BC77-3CC7370C10A8', '')]",
     "guidfortmaxsoft": "[if(equals(parameters('partner'), 'tmaxsoft'), 'PID-46D81167-7F9B-4F38-BEC2-C9EDF4E2485E', '')]",
     "guidforopentext": "[if(equals(parameters('partner'), 'opentext'), 'PID-F037B757-CD90-4C3C-AFC3-8B07D05523C0', '')]",
-    "Sysguid": "[if(not(equals(variables('guidforgenericaks'), '')), variables('guidforgenericaks'), if(not(equals(variables('guidforopentext'), '')), variables('guidforopentext'), if(not(equals(variables('guidfortmaxsoft'), '')), variables('guidfortmaxsoft'), if(not(equals(variables('guidforraincode'), '')), variables('guidforraincode'), if(not(equals(variables('guidforstromasys'), '')), variables('guidforstromasys'), 'PID-4241702A-BF95-4B5D-82E7-364BF62FE998')))))]",
+    "guidforluminex": "[if(equals(parameters('partner'), 'luminex'), 'PID-F8F4E0D7-ADF9-4141-81DD-5911F4093DF7', '')]",
+    "Sysguid": "[if(not(equals(variables('guidforluminex'), '')), variables('guidforluminex'), if(not(equals(variables('guidforgenericaks'), '')), variables('guidforgenericaks'), if(not(equals(variables('guidforopentext'), '')), variables('guidforopentext'), if(not(equals(variables('guidfortmaxsoft'), '')), variables('guidfortmaxsoft'), if(not(equals(variables('guidforraincode'), '')), variables('guidforraincode'), if(not(equals(variables('guidforstromasys'), '')), variables('guidforstromasys'), 'PID-4241702A-BF95-4B5D-82E7-364BF62FE998'))))))]",
     "tagsDefault": {
       "Owner": "Azure Mainframe Landing Zone",
       "Project": "Azure Mainframe Landing Zone",
@@ -705,8 +706,11 @@
           "adminPassword": {
             "value": "[parameters('administratorPassword')]"
           },
-          "subnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appservices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2022-09-01').outputs.appServicesSubnetId.value]"
+          "subnetName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appservices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2022-09-01').outputs.appServicesSubnetName.value]"
+          },
+          "vnetName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}-appservices', variables('name'))), 'Microsoft.Resources/deployments', format('{0}-networkServices', variables('Sysguid'))), '2022-09-01').outputs.vnetName.value]"
           }
         },
         "template": {
@@ -716,7 +720,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.17.1.54307",
-              "templateHash": "3135727649187270254"
+              "templateHash": "2335010418826905678"
             }
           },
           "parameters": {
@@ -783,11 +787,16 @@
                 "description": "Storage Type for Vhds"
               }
             },
-            "subnetId": {
+            "vnetName": {
               "type": "string",
-              "defaultValue": "",
               "metadata": {
-                "description": "Id of the subnet"
+                "description": "VNet Name"
+              }
+            },
+            "subnetName": {
+              "type": "string",
+              "metadata": {
+                "description": "Subnet Name"
               }
             }
           },
@@ -838,7 +847,7 @@
                     "properties": {
                       "privateIPAllocationMethod": "Dynamic",
                       "subnet": {
-                        "id": "[parameters('subnetId')]"
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[0], split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[1])]"
                       },
                       "loadBalancerBackendAddressPools": [
                         {
@@ -867,7 +876,7 @@
                   {
                     "properties": {
                       "subnet": {
-                        "id": "[parameters('subnetId')]"
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[0], split(format('{0}/{1}', parameters('vnetName'), parameters('subnetName')), '/')[1])]"
                       },
                       "privateIPAllocationMethod": "Dynamic"
                     },

@@ -81,8 +81,9 @@ var guidforraincode = (partner == 'raincode') ? 'PID-965A5A3E-A4EC-4B79-A6B5-E94
 var guidforstromasys = (partner == 'stromasys') ? 'PID-4C25D08B-B822-488F-BC77-3CC7370C10A8' : ''
 var guidfortmaxsoft = (partner == 'tmaxsoft') ? 'PID-46D81167-7F9B-4F38-BEC2-C9EDF4E2485E' : ''
 var guidforopentext = (partner == 'opentext') ? 'PID-F037B757-CD90-4C3C-AFC3-8B07D05523C0' : ''
+var guidforluminex = (partner == 'luminex') ? 'PID-F8F4E0D7-ADF9-4141-81DD-5911F4093DF7' : ''
 
-var Sysguid = (guidforgenericaks != '')? guidforgenericaks :(guidforopentext != '')? guidforopentext : (guidfortmaxsoft != '')? guidfortmaxsoft : (guidforraincode != '')? guidforraincode : (guidforstromasys != '')? guidforstromasys : 'PID-4241702A-BF95-4B5D-82E7-364BF62FE998'
+var Sysguid = (guidforluminex != '')? guidforluminex :(guidforgenericaks != '')? guidforgenericaks :(guidforopentext != '')? guidforopentext : (guidfortmaxsoft != '')? guidfortmaxsoft : (guidforraincode != '')? guidforraincode : (guidforstromasys != '')? guidforstromasys : 'PID-4241702A-BF95-4B5D-82E7-364BF62FE998'
 
 var tagsDefault = {
   Owner: 'Azure Mainframe Landing Zone'
@@ -134,7 +135,8 @@ module appServicesRaincode './../rehost/raincode/appservices-raincode-linux-meta
     tags: tagsJoined
     adminUsername: administratorUsername
     adminPassword: administratorPassword
-    subnetId: networkServices.outputs.appServicesSubnetId
+    subnetName: networkServices.outputs.appServicesSubnetName
+    vnetName: networkServices.outputs.vnetName
   }
 }
 module appServicesStromasys './../rehost/stromasys/appservices-stromasys.bicep' = if (partner == 'stromasys') {

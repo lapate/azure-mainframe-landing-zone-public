@@ -149,7 +149,6 @@
                                         "required": true
                                     }
                                 },
-
                                 {
                                     "name": "partner",
                                     "label": "Partner",
@@ -170,6 +169,10 @@
                                                 "value": "generic"
                                             },
                                             {
+                                                "label": "Generic Containers",
+                                                "description": "Select if you want to use Generic template for containers deployment.",
+                                                "value": "genericaks"
+                                            },                                           {
                                                 "label": "Raincode",
                                                 "description": "Select if you want to use Raincode template for deployment.",
                                                 "value": "raincode"
@@ -178,7 +181,22 @@
                                                 "label": "Stromasys",
                                                 "description": "Select if you want to use Stromasys template for deployment.",
                                                 "value": "stromasys"
-                                            }
+                                            },
+                                            {
+                                                "label": "OpenText",
+                                                "description": "Select if you want to use OpenText template for deployment.",
+                                                "value": "opentext"
+                                            },
+                                            {
+                                                "label": "Tmaxsoft(Openframe)",
+                                                "description": "Select if you want to use Tmaxsoft(Openframe) template for deployment.",
+                                                "value": "tmaxsoft"
+                                            },
+                                            {
+                                                "label": "Luminex",
+                                                "description": "Select if you want to use Tmaxsoft(Openframe) template for deployment.",
+                                                "value": "luminex"
+                                            }                                                                                       
                                          ],
                                         "required": true
                                     }
@@ -417,6 +435,81 @@
                                     "options": {
                                         "hideConfirmation": false
                                     }
+                                }, 
+                                {
+                                    "name": "aksuseraccessprincipalId",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": "[equals(steps('basics').mainframeLandingZoneName.partner, 'genericaks')]",
+                                    "label": "AKS User Access Principal Id",
+                                    "defaultValue": "",                                   
+                                    "toolTip": "Specify a user Principal Id (AAD Object Id)",
+                                    "constraints": {
+                                        "required": true
+                                    },
+                                    "options": {
+                                        "text": "Specify a user Principal Id (AAD Object Id) for AKS user access ",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "aksadminaccessprincipalId",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": "[equals(steps('basics').mainframeLandingZoneName.partner, 'genericaks')]",
+                                    "label": "AKS Admin Access Principal Id",
+                                    "defaultValue": "",                                   
+                                    "toolTip": "Specify a user/group Principal Id (AAD Object Id)",
+                                    "constraints": {
+                                        "required": true
+                                    },
+                                    "options": {
+                                        "text": "Specify a user/group Principal Id (AAD Object Id) for AKS admin access ",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                    
+                                },
+                                {
+                                    "name": "aksIdentityName",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": "[equals(steps('basics').mainframeLandingZoneName.partner, 'genericaks')]",
+                                    "label": "AKS Managed Identity Name",
+                                    "defaultValue": "",                                   
+                                    "toolTip": "Specify a identity name",
+                                    "constraints": {
+                                        "required": true
+                                    },
+                                    "options": {
+                                        "text": "Specify a managed identity name for AKS connectivity to other services",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                    
+                                },
+                                {
+                                    "name": "clusterName",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": "[equals(steps('basics').mainframeLandingZoneName.partner, 'genericaks')]",
+                                    "label": "AKS Cluster Name",
+                                    "defaultValue": "",                                   
+                                    "toolTip": "Specify a cluster name",
+                                    "constraints": {
+                                        "required": true
+                                    },
+                                    "options": {
+                                        "text": "Specify the AKS cluster name",
+                                        "link": {
+                                            "label": "",
+                                            "uri": ""
+                                        }
+                                    }
+                                    
                                 }
                             ]
                         },
@@ -880,11 +973,28 @@
                                         "validations": [
                                             {
                                                 "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$",
-                                                "message": "Invalid IP address. Please specify a single valid IP adress (e.g. '10.0.0.4')."
+                                                "message": "Invalid IP address. Please specify a single valid IP address (e.g. '10.0.0.4')."
                                             }
                                         ]
                                     }
                                 },
+                                {
+                                    "name": "firewallPublicIp",
+                                    "label": "Firewall Public IP Address",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": "[equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall')]",
+                                    "defaultValue": "",
+                                    "toolTip": "Specify the Public IP address of your Firewall.",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$",
+                                                "message": "Invalid IP address. Please specify a single valid IP address (e.g. '10.0.0.4')."
+                                            }
+                                        ]
+                                    }
+                                },                                
                                 {
                                     "name": "dnsServerAdresses",
                                     "label": "DNS Server Addresses",
@@ -1113,11 +1223,16 @@
                 "dataIntegrationSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.dataIntegrationSubnetAddressPrefix)]",
                 "externalStorageSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.externalStorageSubnetAddressPrefix)]",
                 "loggingServicesSubnetAddressPrefix": "[if(empty(steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix), '', steps('connectivitySettings').virtualNetworkConfiguration.loggingServicesSubnetAddressPrefix)]",
-                 "hubVnetId": "[if(empty(steps('connectivitySettings').hubVnetConfiguration.hubVirtualNetwork), '', steps('connectivitySettings').hubVnetConfiguration.hubVirtualNetwork)]",
+                "hubVnetId": "[if(empty(steps('connectivitySettings').hubVnetConfiguration.hubVirtualNetwork), '', steps('connectivitySettings').hubVnetConfiguration.hubVirtualNetwork)]",
                 "firewallPrivateIp": "[if(equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall'), first(map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallPrivateIpApi.properties.ipConfigurations, (item) => item.properties.privateIPAddress)), steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.firewallPrivateIp)]",
+                 "firewallPublicIp": "[if(empty(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.firewallPublicIp), '', steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.firewallPublicIp)]",
                 "dnsServerAdresses": "[if(equals(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.existingFirewallType, 'azureFirewall'), map(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.azureFirewallPrivateIpApi.properties.ipConfigurations, (item) => item.properties.privateIPAddress), split(steps('connectivitySettings').sharedNetworkInfrastructureConfiguration.dnsServerAdresses, ','))]",
                 "administratorUsername": "[if(empty(steps('generalSettings').servicesSettings.administratorUsername), '', steps('generalSettings').servicesSettings.administratorUsername)]",
                 "administratorPassword": "[if(empty(steps('generalSettings').servicesSettings.administratorPassword), '', steps('generalSettings').servicesSettings.administratorPassword)]",
+                "aksIdentityName": "[if(empty(steps('generalSettings').servicesSettings.aksIdentityName), '', steps('generalSettings').servicesSettings.aksIdentityName)]",  
+                "clusterName": "[if(empty(steps('generalSettings').servicesSettings.clusterName), '', steps('generalSettings').servicesSettings.clusterName)]",
+                "aksuseraccessprincipalId": "[if(empty(steps('generalSettings').servicesSettings.aksuseraccessprincipalId), '', steps('generalSettings').servicesSettings.aksuseraccessprincipalId)]",
+                "aksadminaccessprincipalId": "[if(empty(steps('generalSettings').servicesSettings.aksadminaccessprincipalId), '', steps('generalSettings').servicesSettings.aksadminaccessprincipalId)]",
                 "mainframeLandingZoneSubscriptionIds": "[if(empty(steps('generalSettings').mainframeLandingZoneSubscriptions.mainframeLandingZoneSubscriptionIds), parse('[]'), map(steps('generalSettings').mainframeLandingZoneSubscriptions.mainframeLandingZoneSubscriptionIds, (item) => item.subscription))]",
                 "privateDnsZoneIdKeyVault": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdKeyVault), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdKeyVault)]",
                 "privateDnsZoneIdDataFactory": "[if(empty(steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactory), '', steps('connectivitySettings').privateDnsZones.privateDnsZoneIdDataFactory)]",

@@ -32,7 +32,7 @@ For teams exploring cloud features, rehosting applications is a great way to use
 
 This architecture showcases a solution that is rehosted on Microsoft Azure.
 
-:::image type="content" source="./images/generic-aks.png" alt-text="Diagram that shows the mainframe applications after migration to Azure." lightbox="./images/generic-aks.png":::
+![image](./images/generic-aks.png)
 
 ### Dataflow
 

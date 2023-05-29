@@ -56,11 +56,26 @@ To help you more quickly understand the structure of the repository, here is an 
 
 ![Hub Resource Group](/docs/images/HubResourcegroup.png)
 
+If you are deploying generic containers solution, please ensure the hub resource group also contains the centralized Azure Firewall, associated firewall network policy to allow for outgoing internet traffic via public ip. The setup should like below
+
+![Hub Resource Group](/docs/images/HubResourcegroup-aks.png)
+
+Firewall Policy
+
+![Hub Resource Group](/docs/images/HubResourcegroup-aks-fwpolicy.png)
+
 - Also, this accelerator uses certified Azure Marketplace images to provision partner specific virtual machines. Please ensure before running the automation, that the accept terms for those images are accepted by running below commands
 
     **az vm image accept-terms --urn <published:offer:sku:version>**
 
-    e.g. az vm image accept-terms --urn stromasys:charon-ssp-ve:charon-ssp-with-ve-license:latest
+    e.g. az vm image accept-terms --urn
+
+| Reference implementation   | URN |
+|:---------------------------|:----------------|
+|Raincode Metal Linux Solution|raincode:raincode_metal_linux:raincode_metal_linux:4.2.197|
+|Stromasys Solution|stromasys:charon-ssp-ve:charon-ssp-with-ve-license:latest|
+|Opentext Solution|micro-focus:es-vm:es-vm:8.0.5|
+|Tmaxsoft Solution|tmaxsoft1608612658335:openframvm:ofvm001:0.0.1|
 
 - For the deployment, please choose one of the **Supported Regions**.
 

@@ -40,7 +40,7 @@ param hubVnetId string = ''
 @description('Specifies the private IP address of the central firewall.')
 param firewallPrivateIp string = ''
 @description('Specifies the public IP address of the central firewall. this is required for AKS')
-param firewallPublicIp string = ''
+param firewallPublicIp string = '0.0.0.0'
 @description('Specifies the private IP addresses of the dns servers.')
 param dnsServerAdresses array = [
   ''

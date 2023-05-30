@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "10220366737249381483"
+      "templateHash": "1669148456410379692"
     }
   },
   "parameters": {
@@ -106,7 +106,7 @@
     },
     "firewallPublicIp": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "0.0.0.0",
       "metadata": {
         "description": "Specifies the public IP address of the central firewall. this is required for AKS"
       }
@@ -326,7 +326,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.17.1.54307",
-              "templateHash": "8690694104023174259"
+              "templateHash": "10098485651730226720"
             }
           },
           "parameters": {
@@ -375,7 +375,7 @@
             },
             "firewallPublicIp": {
               "type": "string",
-              "defaultValue": ""
+              "defaultValue": "0.0.0.0"
             },
             "hubVnetId": {
               "type": "string",

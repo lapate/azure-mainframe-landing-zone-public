@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "1669148456410379692"
+      "templateHash": "11833257802516596334"
     }
   },
   "parameters": {
@@ -106,7 +106,7 @@
     },
     "firewallPublicIp": {
       "type": "string",
-      "defaultValue": "0.0.0.0",
+      "defaultValue": "",
       "metadata": {
         "description": "Specifies the public IP address of the central firewall. this is required for AKS"
       }
@@ -225,7 +225,8 @@
     "sqlAdministratorUsername": "[parameters('administratorUsername')]",
     "sqlServer001Name": "dsvr",
     "sqlserverAdminGroupName": "",
-    "sqlserverAdminGroupObjectID": ""
+    "sqlserverAdminGroupObjectID": "",
+    "IsForContainerizedWorkoad": "[if(equals(parameters('partner'), 'genericaks'), true(), false())]"
   },
   "resources": [
     {
@@ -326,7 +327,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.17.1.54307",
-              "templateHash": "10098485651730226720"
+              "templateHash": "4990874370720792829"
             }
           },
           "parameters": {
@@ -375,7 +376,7 @@
             },
             "firewallPublicIp": {
               "type": "string",
-              "defaultValue": "0.0.0.0"
+              "defaultValue": ""
             },
             "hubVnetId": {
               "type": "string",
@@ -395,6 +396,28 @@
           },
           "resources": [
             {
+              "condition": "[equals(parameters('firewallPublicIp'), '')]",
+              "type": "Microsoft.Network/routeTables",
+              "apiVersion": "2020-11-01",
+              "name": "[format('{0}-routetable', parameters('prefix'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "disableBgpRoutePropagation": false,
+                "routes": [
+                  {
+                    "name": "to-firewall-default",
+                    "properties": {
+                      "addressPrefix": "0.0.0.0/0",
+                      "nextHopType": "VirtualAppliance",
+                      "nextHopIpAddress": "[parameters('firewallPrivateIp')]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "condition": "[not(equals(parameters('firewallPublicIp'), ''))]",
               "type": "Microsoft.Network/routeTables",
               "apiVersion": "2020-11-01",
               "name": "[format('{0}-routetable', parameters('prefix'))]",
@@ -454,7 +477,7 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
                       },
                       "routeTable": {
-                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+                        "id": "[if(equals(parameters('firewallPublicIp'), ''), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
                       },
                       "delegations": [],
                       "privateEndpointNetworkPolicies": "Disabled",
@@ -472,7 +495,7 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
                       },
                       "routeTable": {
-                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+                        "id": "[if(equals(parameters('firewallPublicIp'), ''), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
                       },
                       "delegations": [],
                       "privateEndpointNetworkPolicies": "Disabled",
@@ -490,7 +513,7 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
                       },
                       "routeTable": {
-                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+                        "id": "[if(equals(parameters('firewallPublicIp'), ''), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
                       },
                       "delegations": [],
                       "privateEndpointNetworkPolicies": "Disabled",
@@ -508,7 +531,7 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
                       },
                       "routeTable": {
-                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+                        "id": "[if(equals(parameters('firewallPublicIp'), ''), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
                       },
                       "delegations": [],
                       "privateEndpointNetworkPolicies": "Disabled",
@@ -526,7 +549,7 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
                       },
                       "routeTable": {
-                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+                        "id": "[if(equals(parameters('firewallPublicIp'), ''), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
                       },
                       "delegations": [],
                       "privateEndpointNetworkPolicies": "Disabled",
@@ -539,6 +562,7 @@
               },
               "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]",
+                "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]",
                 "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
               ]
             },
@@ -642,11 +666,11 @@
             },
             "routeTableId": {
               "type": "string",
-              "value": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+              "value": "[if(equals(parameters('firewallPublicIp'), ''), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
             },
             "routeTableName": {
               "type": "string",
-              "value": "[format('{0}-routetable', parameters('prefix'))]"
+              "value": "[if(equals(parameters('firewallPublicIp'), ''), format('{0}-routetable', parameters('prefix')), format('{0}-routetable', parameters('prefix')))]"
             },
             "appServicesSubnetName": {
               "type": "string",
@@ -6278,6 +6302,9 @@
           },
           "privateDnsZoneIdDataFactoryPortal": {
             "value": "[parameters('privateDnsZoneIdDataFactoryPortal')]"
+          },
+          "IsForContainerizedWorkoad": {
+            "value": "[variables('IsForContainerizedWorkoad')]"
           }
         },
         "template": {
@@ -6287,7 +6314,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.17.1.54307",
-              "templateHash": "15102589777914432053"
+              "templateHash": "1887317405560908345"
             }
           },
           "parameters": {
@@ -6328,6 +6355,10 @@
             "privateDnsZoneIdDataFactoryPortal": {
               "type": "string",
               "defaultValue": ""
+            },
+            "IsForContainerizedWorkoad": {
+              "type": "bool",
+              "defaultValue": false
             },
             "Sysguid": {
               "type": "string",
@@ -6493,6 +6524,7 @@
               }
             },
             {
+              "condition": "[parameters('IsForContainerizedWorkoad')]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
               "name": "[format('{0}-acr001', parameters('Sysguid'))]",

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "11833257802516596334"
+      "templateHash": "10675197638344957641"
     }
   },
   "parameters": {
@@ -6314,7 +6314,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.17.1.54307",
-              "templateHash": "1887317405560908345"
+              "templateHash": "7651257888521437348"
             }
           },
           "parameters": {
@@ -7353,7 +7353,7 @@
             },
             "integrationAcrName": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}-acr001', parameters('Sysguid'))), '2022-09-01').outputs.acrName.value]"
+              "value": "[if(parameters('IsForContainerizedWorkoad'), variables('acr001Name'), '')]"
             }
           }
         }

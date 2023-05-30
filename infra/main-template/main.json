@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.17.1.54307",
-      "templateHash": "5007546587896021255"
+      "templateHash": "14412110406581594709"
     }
   },
   "parameters": {
@@ -327,7 +327,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.17.1.54307",
-              "templateHash": "4734093116779350970"
+              "templateHash": "3354311492265364496"
             }
           },
           "parameters": {
@@ -396,7 +396,6 @@
           },
           "resources": [
             {
-              "condition": "[empty(parameters('firewallPublicIp'))]",
               "type": "Microsoft.Network/routeTables",
               "apiVersion": "2020-11-01",
               "name": "[format('{0}-routetable', parameters('prefix'))]",
@@ -418,31 +417,16 @@
             },
             {
               "condition": "[not(empty(parameters('firewallPublicIp')))]",
-              "type": "Microsoft.Network/routeTables",
+              "type": "Microsoft.Network/routeTables/routes",
               "apiVersion": "2020-11-01",
-              "name": "[format('{0}-routetable', parameters('prefix'))]",
-              "location": "[parameters('location')]",
-              "tags": "[parameters('tags')]",
+              "name": "[format('{0}/{1}', format('{0}-routetable', parameters('prefix')), 'from-firewall-to-internet')]",
               "properties": {
-                "disableBgpRoutePropagation": false,
-                "routes": [
-                  {
-                    "name": "to-firewall-default",
-                    "properties": {
-                      "addressPrefix": "0.0.0.0/0",
-                      "nextHopType": "VirtualAppliance",
-                      "nextHopIpAddress": "[parameters('firewallPrivateIp')]"
-                    }
-                  },
-                  {
-                    "name": "from-firewall-to-internet",
-                    "properties": {
-                      "addressPrefix": "[variables('egressAddressPrefix')]",
-                      "nextHopType": "Internet"
-                    }
-                  }
-                ]
-              }
+                "addressPrefix": "[variables('egressAddressPrefix')]",
+                "nextHopType": "Internet"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
+              ]
             },
             {
               "type": "Microsoft.Network/networkSecurityGroups",
@@ -477,7 +461,7 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
                       },
                       "routeTable": {
-                        "id": "[if(empty(parameters('firewallPublicIp')), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
                       },
                       "delegations": [],
                       "privateEndpointNetworkPolicies": "Disabled",
@@ -495,7 +479,7 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
                       },
                       "routeTable": {
-                        "id": "[if(empty(parameters('firewallPublicIp')), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
                       },
                       "delegations": [],
                       "privateEndpointNetworkPolicies": "Disabled",
@@ -513,7 +497,7 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
                       },
                       "routeTable": {
-                        "id": "[if(empty(parameters('firewallPublicIp')), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
                       },
                       "delegations": [],
                       "privateEndpointNetworkPolicies": "Disabled",
@@ -531,7 +515,7 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
                       },
                       "routeTable": {
-                        "id": "[if(empty(parameters('firewallPublicIp')), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
                       },
                       "delegations": [],
                       "privateEndpointNetworkPolicies": "Disabled",
@@ -549,7 +533,7 @@
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]"
                       },
                       "routeTable": {
-                        "id": "[if(empty(parameters('firewallPublicIp')), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
                       },
                       "delegations": [],
                       "privateEndpointNetworkPolicies": "Disabled",
@@ -562,7 +546,6 @@
               },
               "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-nsg', parameters('prefix')))]",
-                "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]",
                 "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
               ]
             },
@@ -666,11 +649,11 @@
             },
             "routeTableId": {
               "type": "string",
-              "value": "[if(empty(parameters('firewallPublicIp')), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))), resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix'))))]"
+              "value": "[resourceId('Microsoft.Network/routeTables', format('{0}-routetable', parameters('prefix')))]"
             },
             "routeTableName": {
               "type": "string",
-              "value": "[if(empty(parameters('firewallPublicIp')), format('{0}-routetable', parameters('prefix')), format('{0}-routetable', parameters('prefix')))]"
+              "value": "[format('{0}-routetable', parameters('prefix'))]"
             },
             "appServicesSubnetName": {
               "type": "string",

@@ -194,7 +194,7 @@
                                             },
                                             {
                                                 "label": "Luminex",
-                                                "description": "Select if you want to use Tmaxsoft(Openframe) template for deployment.",
+                                                "description": "Select if you want to use Luminex template for deployment.",
                                                 "value": "luminex"
                                             }                                                                                       
                                          ],

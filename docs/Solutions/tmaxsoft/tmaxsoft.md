@@ -27,7 +27,7 @@ Many scenarios can benefit from TmaxSoft OpenFrame lift and shift. Possibilities
 
 ## Architecture
 
-<img width="860" height="578" src="/resources/migrate-mainframe-application-to_598752f4a1ae4f85a.png"/>
+<img width="860" height="578" src="./images/migrate-mainframe-application-to_598752f4a1ae4f85a.png"/>
 
 At the center of the diagram are two virtual machines. Labeled boxes indicate that TmaxSoft OpenFrame software runs on the machines, and each box represents a different type of software. These programs migrate applications to Azure and handle transaction processes. They also manage batch programs and provide security. A load balancer is pictured above the virtual machines. Arrows show that it distributes incoming traffic between the machines. Below the virtual machines, a file sharing system is pictured, and to the right is a database. From arrows, it's clear that the virtual machines communicate with the file share and the database. A dotted line surrounds all these components. Outside that line are on-premises users, Azure users, and disaster recovery services. Arrows show the users interacting with the system.
 

@@ -68,12 +68,24 @@ At the center of the diagram are two virtual machines. Labeled boxes indicate th
 
 [](#next-steps)
 
-## Next steps
+## Landing Zone OpenFrame deployment
+This deployment includes Azure VMs that will be deployed to run the latest version of TmaxSoft OpenFrame that is available on the Azure marketplace.
 
--   If you don't already have a license to use OpenFrame or Need more information for configurations, Contact https://www.tmaxsoft.com/contact/
+![image](./images/migrate-mainframe-application-to_598752f4a1ae4f85a.png)
+
+## Deploy this scenario
+Click on the button below to deploy this configuration:
+
+[![`DTA-Button-ALZ`](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://ms.portal.azure.com/#view/Microsoft_Azure_CreateUIDef/CustomDeploymentBlade/uri/https%3A%2F%2Fraw.githubusercontent.com%2Flapate%2Fazure-mainframe-landing-zone-public%2Fmain%2Finfra%2Fmain-template%2Fmain.json/uiFormDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Flapate%2Fazure-mainframe-landing-zone-public%2Fmain%2Fdocs%2Freference%2Fportal.mainframeLandingZone.json)
+
+Follow the deployment steps, fill in the necessary fields and make sure you choose **TmaxSoft OpenFrame** as the selected partner.
 
 
 [](#related-resources)
+
+## Next steps
+
+-   If you don't already have a license to use OpenFrame or Need more information for configurations, Contact https://www.tmaxsoft.com/contact/
 
 ## Related resources
 

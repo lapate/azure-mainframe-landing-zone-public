@@ -76,6 +76,7 @@ Firewall Policy
 |Stromasys Solution|stromasys:charon-ssp-ve:charon-ssp-with-ve-license:latest|
 |Opentext Solution|micro-focus:es-vm:es-vm:8.0.5|
 |Tmaxsoft Solution|tmaxsoft1608612658335:openframvm:ofvm001:0.0.1|
+|Tidal Solution|tidal-migrations:tidal_tools:tidal_tools:latest|
 
 - For the deployment, please choose one of the **Supported Regions**.
 

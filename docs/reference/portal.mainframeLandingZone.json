@@ -196,7 +196,12 @@
                                                 "label": "Luminex",
                                                 "description": "Select if you want to use Luminex template for deployment.",
                                                 "value": "luminex"
-                                            }                                                                                       
+                                            },
+                                            {
+                                                "label": "Tidal",
+                                                "description": "Select if you want to use Tidal template for deployment.",
+                                                "value": "tidal"
+                                            }                                                                                      
                                          ],
                                         "required": true
                                     }
